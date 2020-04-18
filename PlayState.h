@@ -2,6 +2,7 @@
 
 #include "State.h"
 #include "BitmapText.h"
+#include "Fairy.h"
 
 class PlayState : public State {
 public:
@@ -13,7 +14,10 @@ public:
 	virtual void update(sf::Time elapsed);
 	virtual void render(sf::RenderWindow &window);
 
+	sf::Vector2f cameraPosition;
+
 private:
 	BitmapText testText;
+	Fairy player;
 };
 
