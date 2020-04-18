@@ -1,9 +1,9 @@
 #pragma once
 
-#include "GridTile.h"
+#include "GridObject.h"
 #include <SFML/Graphics.hpp>
 
-class Grass : public GridTile {
+class Root : public GridObject {
 public:
 	void init() override;
 	void update(sf::Time elapsed) override;

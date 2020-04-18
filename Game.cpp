@@ -96,6 +96,7 @@ Game::Game() {
 		scale = std::min(window->getSize().x / 240, window->getSize().y / 135);
 		postSprite.setScale(scale, scale);
 		postSprite.setPosition(window->getSize().x / 2 - postSprite.getGlobalBounds().width / 2, window->getSize().y / 2 - postSprite.getGlobalBounds().height / 2);
+		screenOffset = postSprite.getPosition();
 		window->draw(postSprite);
 
 		window->display();

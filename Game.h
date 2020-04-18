@@ -22,6 +22,7 @@ public:
 
 	sf::Vector2u screenSize();
 	int scale;
+	sf::Vector2f screenOffset;
 
 	// Game Variables
 
