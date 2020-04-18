@@ -2,14 +2,6 @@
 
 #include "PlayState.h"
 
-Leaf::Leaf() {
-
-}
-
-Leaf::~Leaf() {
-
-}
-
 void Leaf::init() {
 	sprite.setTexture(state->loadTexture("Resource/Image/Leaf.png"));
 	sprite.setTextureRect(sf::IntRect(0, 0, 10, 10));

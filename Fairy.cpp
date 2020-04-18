@@ -2,14 +2,6 @@
 
 #include "PlayState.h"
 
-Fairy::Fairy() {
-
-}
-
-Fairy::~Fairy() {
-
-}
-
 void Fairy::init() {
 	bodySprite.setTexture(state->loadTexture("Resource/Image/Fairy.png"));
 	bodySprite.setTextureRect(sf::IntRect(0, 0, 10, 10));

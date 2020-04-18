@@ -5,9 +5,6 @@
 
 class Fairy : public Object {
 public:
-	Fairy();
-	~Fairy();
-
 	void init() override;
 	void update(sf::Time elapsed) override;
 

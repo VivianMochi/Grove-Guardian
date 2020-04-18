@@ -2,14 +2,6 @@
 
 #include "PlayState.h"
 
-Tree::Tree() {
-
-}
-
-Tree::~Tree() {
-
-}
-
 void Tree::init() {
 	trunk.setTexture(state->loadTexture("Resource/Image/Trunk.png"));
 	trunk.setOrigin(20, 35);

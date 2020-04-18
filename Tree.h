@@ -6,9 +6,6 @@
 
 class Tree : public GridObject {
 public:
-	Tree();
-	~Tree();
-
 	void init() override;
 	void update(sf::Time elapsed) override;
 

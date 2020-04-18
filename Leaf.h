@@ -5,9 +5,6 @@
 
 class Leaf : public Object {
 public:
-	Leaf();
-	~Leaf();
-
 	void init() override;
 	void update(sf::Time elapsed) override;
 

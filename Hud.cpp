@@ -2,14 +2,6 @@
 
 #include "PlayState.h"
 
-Hud::Hud() {
-
-}
-
-Hud::~Hud() {
-
-}
-
 void Hud::init() {
 	topHudSprite.setTexture(state->loadTexture("Resource/Image/TopHud.png"));
 	topHudSprite.setTextureRect(sf::IntRect(0, 0, 240, 20));

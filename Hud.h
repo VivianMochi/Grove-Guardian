@@ -5,9 +5,6 @@
 
 class Hud : public Object {
 public:
-	Hud();
-	~Hud();
-
 	void init() override;
 	void update(sf::Time elapsed) override;
 
