@@ -4,6 +4,7 @@
 #include "BitmapText.h"
 #include "Fairy.h"
 #include "Tree.h"
+#include "Hud.h"
 
 class PlayState : public State {
 public:
@@ -21,5 +22,6 @@ private:
 	BitmapText testText;
 	Fairy player;
 	Tree tree;
+	Hud hud;
 };
 
