@@ -259,3 +259,7 @@ paket-files/
 # Python Tools for Visual Studio (PTVS)
 __pycache__/
 *.pyc
+/openal32.dll
+/LD46.sln
+/LD46.vcxproj.filters
+/LD46.vcxproj
