@@ -3,13 +3,11 @@
 #include "PlayState.h"
 
 Fairy::Fairy() {
+
 }
 
 Fairy::~Fairy() {
-}
 
-void Fairy::setState(PlayState *state) {
-	this->state = state;
 }
 
 void Fairy::init() {
@@ -33,22 +31,23 @@ void Fairy::draw(sf::RenderTarget &target, sf::RenderStates states) const {
 
 void Fairy::updateVelocity(sf::Time elapsed) {
 	// Take player input
-	bool accelerating = false;
+	bool acceleratingX = false;
+	bool acceleratingY = false;
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::W) || sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
 		velocity.y -= acceleration * elapsed.asSeconds();
-		accelerating = true;
+		acceleratingY = true;
 	}
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::S) || sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) {
 		velocity.y += acceleration * elapsed.asSeconds();
-		accelerating = true;
+		acceleratingY = true;
 	}
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::A) || sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {
 		velocity.x -= acceleration * elapsed.asSeconds();
-		accelerating = true;
+		acceleratingX = true;
 	}
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::D) || sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) {
 		velocity.x += acceleration * elapsed.asSeconds();
-		accelerating = true;
+		acceleratingX = true;
 	}
 	// Cap velocity
 	float speed = std::sqrt(std::pow(velocity.x, 2) + std::pow(velocity.y, 2));
@@ -57,7 +56,7 @@ void Fairy::updateVelocity(sf::Time elapsed) {
 	}
 
 	// Slow down if no input is detected
-	if (!accelerating) {
+	if (!acceleratingX) {
 		if (velocity.x > 0) {
 			velocity.x -= acceleration * elapsed.asSeconds();
 			if (velocity.x < 0) {
@@ -70,6 +69,8 @@ void Fairy::updateVelocity(sf::Time elapsed) {
 				velocity.x = 0;
 			}
 		}
+	}
+	if (!acceleratingY) {
 		if (velocity.y > 0) {
 			velocity.y -= acceleration * elapsed.asSeconds();
 			if (velocity.y < 0) {

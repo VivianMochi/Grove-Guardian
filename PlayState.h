@@ -3,6 +3,7 @@
 #include "State.h"
 #include "BitmapText.h"
 #include "Fairy.h"
+#include "Tree.h"
 
 class PlayState : public State {
 public:
@@ -19,5 +20,6 @@ public:
 private:
 	BitmapText testText;
 	Fairy player;
+	Tree tree;
 };
 
