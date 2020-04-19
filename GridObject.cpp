@@ -17,5 +17,9 @@ void GridObject::onHour(int hour) {
 }
 
 void GridObject::onDay() {
+	
+}
 
+void GridObject::kill() {
+	dead = true;
 }

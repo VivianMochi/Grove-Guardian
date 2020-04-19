@@ -14,7 +14,7 @@ void Fairy::update(sf::Time elapsed) {
 	updateVelocity(elapsed);
 	move(velocity * elapsed.asSeconds());
 	// Tether player to tree
-	tetherPoint = state->getNearestOwned(getPosition())->getPosition();
+	tetherPoint = state->getNearestOwned(getPosition()) ? state->getNearestOwned(getPosition())->getPosition() : getPosition();
 	tetherDistance = std::sqrt(std::pow(tetherPoint.x - getPosition().x, 2) + std::pow(tetherPoint.y - getPosition().y, 2));
 	if (tetherDistance > maxTetherDistance) {
 		move((tetherPoint - getPosition()) * elapsed.asSeconds());

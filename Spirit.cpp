@@ -8,14 +8,26 @@ void Spirit::init() {
 	sprite.setOrigin(5, 5);
 
 	target = state->getNearestOwned(getPosition());
-	float distance = std::sqrt(std::pow(target->getPosition().x - getPosition().x, 2) + std::pow(target->getPosition().y - getPosition().y, 2));
-	move((target->getPosition() - getPosition()) * (distance - (180 + std::rand() % 320)) / distance);
+	if (target) {
+		float distance = std::sqrt(std::pow(target->getPosition().x - getPosition().x, 2) + std::pow(target->getPosition().y - getPosition().y, 2));
+		move((target->getPosition() - getPosition()) * (distance - (180 + std::rand() % 320)) / distance);
+	}
 }
 
 void Spirit::update(sf::Time elapsed) {
 	if (!dead) {
+		if (target && target->dead) {
+			target = state->getNearestOwned(getPosition());
+			if (!target) {
+				kill();
+			}
+		}
 		updateVelocity(elapsed);
 		move(velocity * elapsed.asSeconds());
+		if (target && std::abs(target->getPosition().x - getPosition().x) < 4 && std::abs(target->getPosition().y - getPosition().y) < 4) {
+			target->kill();
+			kill();
+		}
 
 		updateAnimation(elapsed);
 
@@ -37,7 +49,9 @@ void Spirit::draw(sf::RenderTarget &target, sf::RenderStates states) const {
 }
 
 void Spirit::updateVelocity(sf::Time elapsed) {
-	velocity += (target->getPosition() - getPosition()) * elapsed.asSeconds() * 0.5f;
+	if (target) {
+		velocity += (target->getPosition() - getPosition()) * elapsed.asSeconds() * 0.5f;
+	}
 	// Cap velocity
 	float speed = std::sqrt(std::pow(velocity.x, 2) + std::pow(velocity.y, 2));
 	if (speed > topSpeed) {

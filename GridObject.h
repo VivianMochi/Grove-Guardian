@@ -11,7 +11,11 @@ public:
 	virtual void onHour(int hour);
 	virtual void onDay();
 
+	virtual void kill();
+
 	sf::Vector2i gridPosition;
 	bool playerOwned = false;
+
+	bool dead = false;
 };
 

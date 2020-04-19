@@ -106,6 +106,15 @@ void PlayState::update(sf::Time elapsed) {
 			}
 		}
 	}
+	else {
+		if (sf::Mouse::isButtonPressed(sf::Mouse::Right)) {
+			sf::Vector2i selectedGridLocation = getCursorGridLocation();
+			std::shared_ptr<GridObject> selectedObject = getGridObject(selectedGridLocation.x, selectedGridLocation.y);
+			if (selectedObject && selectedObject->playerOwned && std::dynamic_pointer_cast<Tree>(selectedObject)) {
+				selectedObject->kill();
+			}
+		}
+	}
 
 	for (std::shared_ptr<GridTile> &object : tileGrid) {
 		if (object) {
@@ -114,7 +123,12 @@ void PlayState::update(sf::Time elapsed) {
 	}
 	for (std::shared_ptr<GridObject> &object : objectGrid) {
 		if (object) {
-			object->update(elapsed);
+			if (object->dead) {
+				object = std::shared_ptr<GridObject>();
+			}
+			else {
+				object->update(elapsed);
+			}
 		}
 	}
 
@@ -433,7 +447,7 @@ std::shared_ptr<GridObject> PlayState::getNearestOwned(sf::Vector2f position) {
 	std::shared_ptr<GridObject> closest;
 	float closestDistance = 1000000;
 	for (std::shared_ptr<GridObject> &object : objectGrid) {
-		if (object && object->playerOwned) {
+		if (object && !object->dead && object->playerOwned && std::dynamic_pointer_cast<Tree>(object)) {
 			float distance = std::sqrt(std::pow(object->getPosition().x - position.x, 2) + std::pow(object->getPosition().y - position.y, 2));
 			if (distance < closestDistance) {
 				closest = object;
