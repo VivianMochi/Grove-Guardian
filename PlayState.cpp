@@ -172,7 +172,7 @@ void PlayState::gainLight(float gained, sf::Vector2f position) {
 		light = maxLight;
 	}
 	for (int i = 0; i < std::floor(gained); i++) {
-		createParticle(position + sf::Vector2f(-4, -4 * i), sf::Vector2f(0, -20), getResourceColor("Light"), Particle::plus);
+		createParticle(position + sf::Vector2f(-4, -4 * i), sf::Vector2f(0, -20), getResourceColor("Light"), Particle::plus, true);
 	}
 }
 
@@ -180,7 +180,7 @@ bool PlayState::spendLight(float spent, sf::Vector2f position) {
 	if (light >= spent) {
 		light -= spent;
 		for (int i = 0; i < std::floor(spent); i++) {
-			createParticle(position + sf::Vector2f(-4, -4 * i), sf::Vector2f(0, -20), getResourceColor("Light"), Particle::minus);
+			createParticle(position + sf::Vector2f(-4, -4 * i), sf::Vector2f(0, -20), getResourceColor("Light"), Particle::minus, true);
 		}
 		return true;
 	}
@@ -195,7 +195,7 @@ void PlayState::gainWater(float gained, sf::Vector2f position) {
 		water = maxWater;
 	}
 	for (int i = 0; i < std::floor(gained); i++) {
-		createParticle(position + sf::Vector2f(0, -4 * i), sf::Vector2f(0, -20), getResourceColor("Water"), Particle::plus);
+		createParticle(position + sf::Vector2f(0, -4 * i), sf::Vector2f(0, -20), getResourceColor("Water"), Particle::plus, true);
 	}
 }
 
@@ -203,7 +203,7 @@ bool PlayState::spendWater(float spent, sf::Vector2f position) {
 	if (water >= spent) {
 		water -= spent;
 		for (int i = 0; i < std::floor(spent); i++) {
-			createParticle(position + sf::Vector2f(0, -4 * i), sf::Vector2f(0, -20), getResourceColor("Water"), Particle::minus);
+			createParticle(position + sf::Vector2f(0, -4 * i), sf::Vector2f(0, -20), getResourceColor("Water"), Particle::minus, true);
 		}
 		return true;
 	}
@@ -218,7 +218,7 @@ void PlayState::gainNutrients(float gained, sf::Vector2f position) {
 		nutrients = maxNutrients;
 	}
 	for (int i = 0; i < std::floor(gained); i++) {
-		createParticle(position + sf::Vector2f(4, -4 * i), sf::Vector2f(0, -20), getResourceColor("Nutrients"), Particle::plus);
+		createParticle(position + sf::Vector2f(4, -4 * i), sf::Vector2f(0, -20), getResourceColor("Nutrients"), Particle::plus, true);
 	}
 }
 
@@ -226,7 +226,7 @@ bool PlayState::spendNutrients(float spent, sf::Vector2f position) {
 	if (nutrients >= spent) {
 		nutrients -= spent;
 		for (int i = 0; i < std::floor(spent); i++) {
-			createParticle(position + sf::Vector2f(4, -4 * i), sf::Vector2f(0, -20), getResourceColor("Nutrients"), Particle::minus);
+			createParticle(position + sf::Vector2f(4, -4 * i), sf::Vector2f(0, -20), getResourceColor("Nutrients"), Particle::minus, true);
 		}
 		return true;
 	}
@@ -295,7 +295,7 @@ void PlayState::render(sf::RenderWindow &window) {
 	for (Particle &particle : particles) {
 		if (particle.onHud) {
 			particleSprite.setTextureRect(sf::IntRect((int)particle.type * 3, 0, 3, 3));
-			particleSprite.setPosition(particle.position);
+			particleSprite.setPosition(particle.position - cameraPosition);
 			particleSprite.setColor(particle.color);
 			window.draw(particleSprite);
 		}
