@@ -27,6 +27,9 @@ public:
 	float attackRate = 0;
 	sf::Color color;
 
+	int distanceToMother = 0;
+	float health;
+
 private:
 	// Inherited via Drawable
 	virtual void draw(sf::RenderTarget &target, sf::RenderStates states) const override;

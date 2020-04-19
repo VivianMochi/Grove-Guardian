@@ -50,8 +50,9 @@ public:
 	void setGridTile(int x, int y, std::string newType);
 	std::shared_ptr<GridObject> getGridObject(int x, int y);
 	void setGridObject(int x, int y, std::shared_ptr<GridObject> newObject);
-	bool isNearOwned(int x, int y);
+	int getDistanceToMother(int x, int y);
 	std::shared_ptr<GridObject> getNearestOwned(sf::Vector2f position);
+	bool isOwnedTree(std::shared_ptr<GridObject> object);
 
 	std::shared_ptr<Spirit> getClosestSpirit(sf::Vector2f position);
 

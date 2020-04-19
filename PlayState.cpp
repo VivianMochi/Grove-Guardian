@@ -99,9 +99,9 @@ void PlayState::update(sf::Time elapsed) {
 	if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
 		sf::Vector2i selectedGridLocation = getCursorGridLocation();
 		if (!getGridObject(selectedGridLocation.x, selectedGridLocation.y)) {
-			if (isNearOwned(selectedGridLocation.x, selectedGridLocation.y)) {
-				if (spendNutrients(1, sf::Vector2f(getCursorGridLocation() * 10))) {
-					setGridObject(getCursorGridLocation().x, getCursorGridLocation().y, std::make_shared<Tree>());
+			if (getDistanceToMother(selectedGridLocation.x, selectedGridLocation.y) < 1000000) {
+				if (spendNutrients(1, sf::Vector2f(selectedGridLocation * 10))) {
+					setGridObject(selectedGridLocation.x, selectedGridLocation.y, std::make_shared<Tree>());
 				}
 			}
 		}
@@ -110,7 +110,7 @@ void PlayState::update(sf::Time elapsed) {
 		if (sf::Mouse::isButtonPressed(sf::Mouse::Right)) {
 			sf::Vector2i selectedGridLocation = getCursorGridLocation();
 			std::shared_ptr<GridObject> selectedObject = getGridObject(selectedGridLocation.x, selectedGridLocation.y);
-			if (selectedObject && selectedObject->playerOwned && std::dynamic_pointer_cast<Tree>(selectedObject)) {
+			if (isOwnedTree(selectedObject)) {
 				selectedObject->kill();
 			}
 		}
@@ -176,7 +176,7 @@ void PlayState::calculateMaxResources() {
 	maxWater = 0;
 	maxNutrients = 0;
 	for (std::shared_ptr<GridObject> &object : objectGrid) {
-		if (object && object->playerOwned && std::dynamic_pointer_cast<Tree>(object)) {
+		if (isOwnedTree(object)) {
 			maxLight += std::dynamic_pointer_cast<Tree>(object)->maxLight;
 			maxWater += std::dynamic_pointer_cast<Tree>(object)->maxWater;
 			maxNutrients += std::dynamic_pointer_cast<Tree>(object)->maxNutrients;
@@ -364,7 +364,7 @@ void PlayState::buildWorld(int worldWidth, int worldHeight) {
 			}
 
 			if (x == worldSize.x / 2 && y == worldSize.y / 2) {
-				setGridObject(x, y, std::make_shared<Tree>("Tree"));
+				setGridObject(x, y, std::make_shared<Tree>("Mother Tree"));
 			}
 		}
 	}
@@ -425,29 +425,28 @@ void PlayState::setGridObject(int x, int y, std::shared_ptr<GridObject> newObjec
 	}
 }
 
-bool PlayState::isNearOwned(int x, int y) {
-	if (getGridObject(x - 1, y) && getGridObject(x - 1, y)->playerOwned) {
-		return true;
+int PlayState::getDistanceToMother(int x, int y) {
+	int distance = 1000000;
+	if (isOwnedTree(getGridObject(x - 1, y))) {
+		distance = std::min(distance, std::dynamic_pointer_cast<Tree>(getGridObject(x - 1, y))->distanceToMother + 1);
 	}
-	else if (getGridObject(x + 1, y) && getGridObject(x + 1, y)->playerOwned) {
-		return true;
+	if (isOwnedTree(getGridObject(x + 1, y))) {
+		distance = std::min(distance, std::dynamic_pointer_cast<Tree>(getGridObject(x + 1, y))->distanceToMother + 1);
 	}
-	else if (getGridObject(x, y - 1) && getGridObject(x, y - 1)->playerOwned) {
-		return true;
+	if (isOwnedTree(getGridObject(x, y - 1))) {
+		distance = std::min(distance, std::dynamic_pointer_cast<Tree>(getGridObject(x, y - 1))->distanceToMother + 1);
 	}
-	else if (getGridObject(x, y + 1) && getGridObject(x, y + 1)->playerOwned) {
-		return true;
+	if (isOwnedTree(getGridObject(x, y + 1))) {
+		distance = std::min(distance, std::dynamic_pointer_cast<Tree>(getGridObject(x, y + 1))->distanceToMother + 1);
 	}
-	else {
-		return false;
-	}
+	return distance;
 }
 
 std::shared_ptr<GridObject> PlayState::getNearestOwned(sf::Vector2f position) {
 	std::shared_ptr<GridObject> closest;
 	float closestDistance = 1000000;
 	for (std::shared_ptr<GridObject> &object : objectGrid) {
-		if (object && !object->dead && object->playerOwned && std::dynamic_pointer_cast<Tree>(object)) {
+		if (object && isOwnedTree(object)) {
 			float distance = std::sqrt(std::pow(object->getPosition().x - position.x, 2) + std::pow(object->getPosition().y - position.y, 2));
 			if (distance < closestDistance) {
 				closest = object;
@@ -456,6 +455,10 @@ std::shared_ptr<GridObject> PlayState::getNearestOwned(sf::Vector2f position) {
 		}
 	}
 	return closest;
+}
+
+bool PlayState::isOwnedTree(std::shared_ptr<GridObject> object) {
+	return object && !object->dead && object->playerOwned && std::dynamic_pointer_cast<Tree>(object);
 }
 
 std::shared_ptr<Spirit> PlayState::getClosestSpirit(sf::Vector2f position) {

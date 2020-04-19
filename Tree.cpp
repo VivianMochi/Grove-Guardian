@@ -9,12 +9,32 @@ Tree::Tree(std::string type) : type(type) {
 void Tree::init() {
 	playerOwned = true;
 	setType(type);
+	if (getType().find("Mother") != -1) {
+		distanceToMother = 0;
+	}
+	else {
+		distanceToMother = state->getDistanceToMother(gridPosition.x, gridPosition.y);
+	}
 
+	health = 3 + std::rand() % 70 * 0.1f;
 	color = sf::Color(234, 136, 155);
 }
 
 void Tree::update(sf::Time elapsed) {
 	attackCooldown -= elapsed.asSeconds() * 1.01;
+
+	if (getType().find("Mother") == -1) {
+		if (distanceToMother < state->getDistanceToMother(gridPosition.x, gridPosition.y)) {
+			distanceToMother += 1;
+			health -= elapsed.asSeconds();
+			if (health <= 0) {
+				kill();
+			}
+		}
+		else {
+			distanceToMother = state->getDistanceToMother(gridPosition.x, gridPosition.y);
+		}
+	}
 
 	for (Leaf &leaf : leaves) {
 		leaf.update(elapsed);
@@ -61,7 +81,7 @@ void Tree::onHour(int hour) {
 		}
 	}
 
-	if (getType() == "Tree") {
+	if (getType() == "Mother Tree") {
 		if (state->getTimeOfDay(hour) == "Day") {
 			state->gainLight(3, getPosition());
 			//state->gainWater(1, getPosition());
@@ -84,7 +104,7 @@ void Tree::setType(std::string type) {
 		sprite.setTextureRect(sf::IntRect(std::rand() % 6 * 10, 10, 10, 10));
 		sprite.setOrigin(5, 5);
 	}
-	else if (type == "Tree") {
+	else if (type == "Mother Tree") {
 		sprite.setTexture(state->loadTexture("Resource/Image/Trunk.png"));
 		sprite.setOrigin(sprite.getTextureRect().width / 2, sprite.getTextureRect().height - 5);
 		generateLeaves();
