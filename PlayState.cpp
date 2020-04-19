@@ -1,6 +1,5 @@
 #include "PlayState.h"
 
-#include "Grass.h"
 #include "Root.h"
 
 PlayState::PlayState() {
@@ -84,6 +83,21 @@ std::string PlayState::getTimeOfDay() {
 	}
 }
 
+sf::Color PlayState::getResourceColor(std::string resource) {
+	if (resource == "Light") {
+		return sf::Color(255, 240, 132);
+	}
+	else if (resource == "Water") {
+		return sf::Color(0, 148, 255);
+	}
+	else if (resource == "Nutrients") {
+		return sf::Color(204, 106, 106);
+	}
+	else {
+		return sf::Color::White;
+	}
+}
+
 void PlayState::render(sf::RenderWindow &window) {
 	for (std::shared_ptr<GridTile> &object : tileGrid) {
 		if (object) {
@@ -110,7 +124,18 @@ void PlayState::buildWorld(int worldWidth, int worldHeight) {
 	objectGrid.resize(worldSize.x * worldSize.y);
 	for (int y = 0; y < worldSize.y; y++) {
 		for (int x = 0; x < worldSize.x; x++) {
-			setGridTile(x, y, std::make_shared<Grass>());
+			std::shared_ptr<GridTile> newTile = std::make_shared<GridTile>();
+			newTile->setState(this);
+			newTile->setPosition(x * 10, y * 10);
+			newTile->init();
+			tileGrid[y * worldSize.x + x] = newTile;
+			if (std::rand() % 8 == 0) {
+				setGridTile(x, y, "Water");
+			}
+			else if (std::rand() % 8 == 0) {
+				setGridTile(x, y, "Nutrients");
+			}
+
 			if (x == worldSize.x / 2 && y == worldSize.y / 2) {
 				setGridObject(x, y, std::make_shared<Tree>());
 			}
@@ -130,12 +155,9 @@ std::shared_ptr<GridTile> PlayState::getGridTile(int x, int y) {
 	}
 }
 
-void PlayState::setGridTile(int x, int y, std::shared_ptr<GridTile> newObject) {
+void PlayState::setGridTile(int x, int y, std::string newType) {
 	if (x >= 0 && x <= worldSize.x - 1 && y >= 0 || y <= worldSize.y - 1) {
-		newObject->setState(this);
-		newObject->setPosition(x * 10, y * 10);
-		newObject->init();
-		tileGrid[y * worldSize.x + x] = newObject;
+		tileGrid[y * worldSize.x + x]->setType(newType);
 	}
 }
 

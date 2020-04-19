@@ -18,5 +18,10 @@ private:
 	sf::RectangleShape dayBar;
 	sf::Sprite dayBarBg;
 	sf::Sprite sunSprite;
+	sf::Sprite resourcesHud;
+	BitmapText dayText;
+	BitmapText lightText;
+	BitmapText waterText;
+	BitmapText nutrientsText;
 };
 

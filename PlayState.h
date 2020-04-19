@@ -21,6 +21,7 @@ public:
 	sf::Vector2f cameraPosition;
 
 	std::string getTimeOfDay();
+	sf::Color getResourceColor(std::string resource);
 
 	// Game Stats
 	float secondsPerDay = 10;
@@ -34,11 +35,18 @@ public:
 	int hour = 3;
 	float time;
 
+	float light = 5;
+	int maxLight = 5;
+	float water = 3;
+	int maxWater = 10;
+	float nutrients = 10;
+	int maxNutrients = 20;
+
 private:
 	void buildWorld(int worldWidth, int worldHeight);
 
 	std::shared_ptr<GridTile> getGridTile(int x, int y);
-	void setGridTile(int x, int y, std::shared_ptr<GridTile> newObject);
+	void setGridTile(int x, int y, std::string newType);
 	std::shared_ptr<GridObject> getGridObject(int x, int y);
 	void setGridObject(int x, int y, std::shared_ptr<GridObject> newObject);
 

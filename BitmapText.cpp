@@ -54,13 +54,13 @@ void BitmapText::draw(sf::RenderTarget &target, sf::RenderStates states) const {
 			else if (character == '\t') {
 				currentPosition.x = getPosition().x + (int)(currentPosition.x - getPosition().x) / 28 * 28 + 28;
 			}
-			else if (character == '!' || character == '.' || character == ':' || character == ';') {
+			else if (character == '!' || character == '.' || character == ':' || character == ';' || character == '*') {
 				currentPosition.x += 3;
 			}
-			else if (character == '(' || character == ')' || character == '/' || character == '[' || character == '\\' || character == ']') {
+			else if (character == '(' || character == ')' || character == '[' || character == ']') {
 				currentPosition.x += 4;
 			}
-			else if (character == '1' || character == 'I') {
+			else if (character == '1' || character == 'I' || character == '/' || character == '\\') {
 				currentPosition.x += 5;
 			}
 			else if (character == 'M' || character == 'W') {

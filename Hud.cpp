@@ -17,6 +17,24 @@ void Hud::init() {
 	sunSprite.setTexture(state->loadTexture("Resource/Image/DayBar.png"));
 	sunSprite.setTextureRect(sf::IntRect(0, 10, 16, 8));
 	sunSprite.setPosition(dayBarSprite.getPosition() + sf::Vector2f(state->hour * 11 - 1, 9));
+
+	resourcesHud.setTexture(state->loadTexture("Resource/Image/ResourcesHud.png"));
+
+	dayText.setTexture(state->loadTexture("Resource/Image/Font.png"));
+	dayText.setColor(sf::Color::White);
+	dayText.setPosition(4, 4);
+
+	lightText.setTexture(state->loadTexture("Resource/Image/Font.png"));
+	lightText.setColor(state->getResourceColor("Light"));
+	lightText.setPosition(16, 18);
+
+	waterText.setTexture(state->loadTexture("Resource/Image/Font.png"));
+	waterText.setColor(state->getResourceColor("Water"));
+	waterText.setPosition(16, 28);
+
+	nutrientsText.setTexture(state->loadTexture("Resource/Image/Font.png"));
+	nutrientsText.setColor(state->getResourceColor("Nutrients"));
+	nutrientsText.setPosition(16, 38);
 }
 
 void Hud::update(sf::Time elapsed) {
@@ -39,9 +57,20 @@ void Hud::update(sf::Time elapsed) {
 		sunSpriteDesiredLocation.x = dayBarSprite.getPosition().x + 107;
 	}
 	sunSprite.move((sunSpriteDesiredLocation - sunSprite.getPosition()) * elapsed.asSeconds() * 4.0f);
+
+	dayText.setText("Day " + std::to_string(state->day));
+	lightText.setText(std::to_string(int(state->light)) + "/" + std::to_string(state->maxLight));
+	waterText.setText(std::to_string(int(state->water)) + "/" + std::to_string(state->maxWater));
+	nutrientsText.setText(std::to_string(int(state->nutrients)) + "/" + std::to_string(state->maxNutrients));
 }
 
 void Hud::draw(sf::RenderTarget &target, sf::RenderStates states) const {
+	target.draw(resourcesHud);
+	target.draw(dayText);
+	target.draw(lightText);
+	target.draw(waterText);
+	target.draw(nutrientsText);
+
 	target.draw(dayBarBg);
 	target.draw(dayBar);
 	target.draw(sunSprite);
