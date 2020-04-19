@@ -22,6 +22,14 @@ void PlayState::init() {
 	cursor.setTexture(loadTexture("Resource/Image/Cursor.png"));
 	cursor.setOrigin(6, 6);
 
+	transitionOverlay.setSize(sf::Vector2f(240, 135));
+	transitionOverlay.setFillColor(sf::Color::Transparent);
+	nightOverlay.setSize(sf::Vector2f(240, 135));
+	nightOverlay.setFillColor(sf::Color::Transparent);
+
+	dayMusic.openFromFile("Resource/Music/Day.ogg");
+	nightMusic.openFromFile("Resource/Music/Night.ogg");
+
 	buildWorld(50, 50);
 
 	player.setState(this);
@@ -29,6 +37,8 @@ void PlayState::init() {
 	player.init();
 
 	cameraPosition = player.getPosition() - sf::Vector2f(120, 70);
+
+	dayMusic.play();
 }
 
 void PlayState::gotEvent(sf::Event event) {
@@ -50,7 +60,16 @@ void PlayState::update(sf::Time elapsed) {
 			hour = 0;
 			day += 1;
 		}
+		if (hour == 2) {
+			dayMusic.play();
+			nightMusic.stop();
+		}
+		else if (hour == 9) {
+			dayMusic.stop();
+			nightMusic.play();
+		}
 	}
+	updateOverlays();
 
 	cameraPosition += (player.getPosition() - sf::Vector2f(120, 70) - cameraPosition) * elapsed.asSeconds() * 4.0f;
 
@@ -110,6 +129,9 @@ void PlayState::render(sf::RenderWindow &window) {
 		}
 	}
 
+	window.draw(nightOverlay);
+	window.draw(transitionOverlay);
+
 	window.draw(cursor);
 
 	window.draw(player);
@@ -129,10 +151,10 @@ void PlayState::buildWorld(int worldWidth, int worldHeight) {
 			newTile->setPosition(x * 10, y * 10);
 			newTile->init();
 			tileGrid[y * worldSize.x + x] = newTile;
-			if (std::rand() % 8 == 0) {
+			if (std::rand() % 20 == 0) {
 				setGridTile(x, y, "Water");
 			}
-			else if (std::rand() % 8 == 0) {
+			else if (std::rand() % 20 == 0) {
 				setGridTile(x, y, "Nutrients");
 			}
 
@@ -196,4 +218,21 @@ sf::Vector2f PlayState::getCursorLocation() {
 
 sf::Vector2i PlayState::getCursorGridLocation() {
 	return worldLocationToGrid(screenLocationToWorld(getCursorLocation()));
+}
+
+void PlayState::updateOverlays() {
+	if (hour == 2) {
+		nightOverlay.setFillColor(sf::Color(0, 0, 0, 140 * (1 - time / secondsPerDay)));
+		transitionOverlay.setFillColor(sf::Color(255, 119, 56, 60 * (time / secondsPerDay)));
+	}
+	else if (hour == 3) {
+		transitionOverlay.setFillColor(sf::Color(255, 119, 56, 60 * (1 - time / secondsPerDay)));
+	}
+	else if (hour == 7) {
+		transitionOverlay.setFillColor(sf::Color(255, 119, 56, 60 * (time / secondsPerDay)));
+	}
+	else if (hour == 8) {
+		transitionOverlay.setFillColor(sf::Color(255, 119, 56, 60 * (1 - time / secondsPerDay)));
+		nightOverlay.setFillColor(sf::Color(0, 0, 0, 140 * (time / secondsPerDay)));
+	}
 }

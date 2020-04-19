@@ -26,15 +26,15 @@ void Hud::init() {
 
 	lightText.setTexture(state->loadTexture("Resource/Image/Font.png"));
 	lightText.setColor(state->getResourceColor("Light"));
-	lightText.setPosition(16, 18);
+	lightText.setPosition(14, 18);
 
 	waterText.setTexture(state->loadTexture("Resource/Image/Font.png"));
 	waterText.setColor(state->getResourceColor("Water"));
-	waterText.setPosition(16, 28);
+	waterText.setPosition(14, 28);
 
 	nutrientsText.setTexture(state->loadTexture("Resource/Image/Font.png"));
 	nutrientsText.setColor(state->getResourceColor("Nutrients"));
-	nutrientsText.setPosition(16, 38);
+	nutrientsText.setPosition(14, 38);
 }
 
 void Hud::update(sf::Time elapsed) {

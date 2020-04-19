@@ -6,6 +6,7 @@
 #include "Tree.h"
 #include "Hud.h"
 #include "GridTile.h"
+#include <SFML/Audio.hpp>
 #include <memory>
 
 class PlayState : public State {
@@ -32,7 +33,7 @@ public:
 	std::vector<std::shared_ptr<GridObject>> objectGrid;
 
 	int day = 1;
-	int hour = 3;
+	int hour = 2;
 	float time;
 
 	float light = 5;
@@ -55,10 +56,18 @@ private:
 	sf::Vector2f getCursorLocation();
 	sf::Vector2i getCursorGridLocation();
 
+	void updateOverlays();
+
 	// Resources
 	BitmapText testText;
 	Fairy player;
 	Hud hud;
 	sf::Sprite cursor;
+
+	sf::RectangleShape transitionOverlay;
+	sf::RectangleShape nightOverlay;
+
+	sf::Music dayMusic;
+	sf::Music nightMusic;
 };
 
