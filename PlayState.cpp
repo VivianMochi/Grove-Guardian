@@ -1,6 +1,6 @@
 #include "PlayState.h"
 
-#include "Root.h"
+#include "Tree.h"
 
 PlayState::PlayState() {
 
@@ -50,6 +50,13 @@ void PlayState::gotEvent(sf::Event event) {
 }
 
 void PlayState::update(sf::Time elapsed) {
+	if (std::fmod(time + elapsed.asSeconds(), 0.5f) < std::fmod(time, 0.5f)) {
+		for (std::shared_ptr<GridObject> &object : objectGrid) {
+			if (object) {
+				object->onHalfSecond();
+			}
+		}
+	}
 	time += elapsed.asSeconds();
 	// Debug
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Z)) {
@@ -94,7 +101,7 @@ void PlayState::update(sf::Time elapsed) {
 		if (!getGridObject(selectedGridLocation.x, selectedGridLocation.y)) {
 			if (isNearOwned(selectedGridLocation.x, selectedGridLocation.y)) {
 				if (spendNutrients(1, sf::Vector2f(getCursorGridLocation() * 10))) {
-					setGridObject(getCursorGridLocation().x, getCursorGridLocation().y, std::make_shared<Root>());
+					setGridObject(getCursorGridLocation().x, getCursorGridLocation().y, std::make_shared<Tree>());
 				}
 			}
 		}
@@ -113,8 +120,8 @@ void PlayState::update(sf::Time elapsed) {
 
 	calculateMaxResources();
 
-	for (Spirit &spirit : spirits) {
-		spirit.update(elapsed);
+	for (std::shared_ptr<Spirit> &spirit : spirits) {
+		spirit->update(elapsed);
 	}
 
 	player.update(elapsed);
@@ -155,10 +162,10 @@ void PlayState::calculateMaxResources() {
 	maxWater = 0;
 	maxNutrients = 0;
 	for (std::shared_ptr<GridObject> &object : objectGrid) {
-		if (object && object->playerOwned) {
-			maxLight += object->maxLight;
-			maxWater += object->maxWater;
-			maxNutrients += object->maxNutrients;
+		if (object && object->playerOwned && std::dynamic_pointer_cast<Tree>(object)) {
+			maxLight += std::dynamic_pointer_cast<Tree>(object)->maxLight;
+			maxWater += std::dynamic_pointer_cast<Tree>(object)->maxWater;
+			maxNutrients += std::dynamic_pointer_cast<Tree>(object)->maxNutrients;
 		}
 	}
 	if (light > maxLight) {
@@ -289,8 +296,8 @@ void PlayState::render(sf::RenderWindow &window) {
 		}
 	}
 
-	for (const Spirit &spirit : spirits) {
-		window.draw(spirit);
+	for (std::shared_ptr<Spirit> &spirit : spirits) {
+		window.draw(*spirit);
 	}
 
 	window.draw(nightOverlay);
@@ -343,7 +350,7 @@ void PlayState::buildWorld(int worldWidth, int worldHeight) {
 			}
 
 			if (x == worldSize.x / 2 && y == worldSize.y / 2) {
-				setGridObject(x, y, std::make_shared<Tree>());
+				setGridObject(x, y, std::make_shared<Tree>("Tree"));
 			}
 		}
 	}
@@ -351,15 +358,15 @@ void PlayState::buildWorld(int worldWidth, int worldHeight) {
 
 void PlayState::spawnSpirits() {
 	for (int i = 0; i < day; i++) {
-		Spirit spirit;
-		spirit.setState(this);
+		std::shared_ptr<Spirit> spirit = std::make_shared<Spirit>();
+		spirit->setState(this);
 		if (std::rand() % 2) {
-			spirit.setPosition(std::rand() % 2 ? 0 : worldSize.x * 10, std::rand() % worldSize.y * 10);
+			spirit->setPosition(std::rand() % 2 ? 0 : worldSize.x * 10, std::rand() % worldSize.y * 10);
 		}
 		else {
-			spirit.setPosition(std::rand() % worldSize.x * 10, std::rand() % 2 ? 0 : worldSize.y * 10);
+			spirit->setPosition(std::rand() % worldSize.x * 10, std::rand() % 2 ? 0 : worldSize.y * 10);
 		}
-		spirit.init();
+		spirit->init();
 		spirits.push_back(spirit);
 	}
 }
@@ -430,6 +437,21 @@ std::shared_ptr<GridObject> PlayState::getNearestOwned(sf::Vector2f position) {
 			float distance = std::sqrt(std::pow(object->getPosition().x - position.x, 2) + std::pow(object->getPosition().y - position.y, 2));
 			if (distance < closestDistance) {
 				closest = object;
+				closestDistance = distance;
+			}
+		}
+	}
+	return closest;
+}
+
+std::shared_ptr<Spirit> PlayState::getClosestSpirit(sf::Vector2f position) {
+	std::shared_ptr<Spirit> closest;
+	float closestDistance = 1000000;
+	for (std::shared_ptr<Spirit> &spirit : spirits) {
+		if (!spirit->dead) {
+			float distance = std::sqrt(std::pow(spirit->getPosition().x - position.x, 2) + std::pow(spirit->getPosition().y - position.y, 2));
+			if (distance < closestDistance) {
+				closest = spirit;
 				closestDistance = distance;
 			}
 		}

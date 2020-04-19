@@ -53,6 +53,8 @@ public:
 	bool isNearOwned(int x, int y);
 	std::shared_ptr<GridObject> getNearestOwned(sf::Vector2f position);
 
+	std::shared_ptr<Spirit> getClosestSpirit(sf::Vector2f position);
+
 	void createParticle(sf::Vector2f position, sf::Vector2f velocity, sf::Color color, Particle::ParticleType type = Particle::ParticleType::dot, bool onHud = false);
 	void updateParticles(sf::Time elapsed);
 
@@ -63,7 +65,7 @@ public:
 	sf::Vector2i worldSize;
 	std::vector<std::shared_ptr<GridTile>> tileGrid;
 	std::vector<std::shared_ptr<GridObject>> objectGrid;
-	std::vector<Spirit> spirits;
+	std::vector< std::shared_ptr<Spirit>> spirits;
 
 	int day = 1;
 	int hour = 2;

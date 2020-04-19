@@ -17,8 +17,10 @@ private:
 	// Inherited via Drawable
 	virtual void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
 
-	// Resources
+	// Internal data
 	std::string type = "Grass";
+
+	// Resources
 	sf::Sprite sprite;
 };
 

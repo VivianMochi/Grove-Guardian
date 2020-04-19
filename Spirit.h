@@ -9,6 +9,10 @@ public:
 	void init() override;
 	void update(sf::Time elapsed) override;
 
+	void kill();
+
+	bool dead = false;
+
 private:
 	// Inherited via Drawable
 	virtual void draw(sf::RenderTarget &target, sf::RenderStates states) const override;

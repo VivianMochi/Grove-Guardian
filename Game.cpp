@@ -7,8 +7,8 @@
 
 Game::Game() {
 	// Create game window
-	//window = new sf::RenderWindow(sf::VideoMode(1920, 1080), "LD64", sf::Style::Fullscreen);
-	window = new sf::RenderWindow(sf::VideoMode(960, 540), "LD64");
+	//window = new sf::RenderWindow(sf::VideoMode(1920, 1080), "Grove Guardian", sf::Style::Fullscreen);
+	window = new sf::RenderWindow(sf::VideoMode(960, 540), "Grove Guardian");
 	window->setFramerateLimit(60);
 	fullscreen = false;
 	scale = std::min(window->getSize().x / 240, window->getSize().y / 135);
@@ -49,13 +49,13 @@ Game::Game() {
 				if (event.key.code == sf::Keyboard::F11) {
 					if (fullscreen) {
 						delete window;
-						window = new sf::RenderWindow(sf::VideoMode(960, 540), "LD64");
+						window = new sf::RenderWindow(sf::VideoMode(960, 540), "Grove Guardian");
 						window->setFramerateLimit(60);
 						fullscreen = false;
 					}
 					else {
 						delete window;
-						window = new sf::RenderWindow(sf::VideoMode(1920, 1080), "LD64", sf::Style::Fullscreen);
+						window = new sf::RenderWindow(sf::VideoMode(1920, 1080), "Grove Guardian", sf::Style::Fullscreen);
 						window->setFramerateLimit(60);
 						fullscreen = true;
 					}

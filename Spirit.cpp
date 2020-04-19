@@ -9,20 +9,31 @@ void Spirit::init() {
 
 	target = state->getNearestOwned(getPosition());
 	float distance = std::sqrt(std::pow(target->getPosition().x - getPosition().x, 2) + std::pow(target->getPosition().y - getPosition().y, 2));
-	move((target->getPosition() - getPosition()) * (distance - (140 + std::rand() % 360)) / distance);
+	move((target->getPosition() - getPosition()) * (distance - (180 + std::rand() % 320)) / distance);
 }
 
 void Spirit::update(sf::Time elapsed) {
-	updateVelocity(elapsed);
-	move(velocity * elapsed.asSeconds());
+	if (!dead) {
+		updateVelocity(elapsed);
+		move(velocity * elapsed.asSeconds());
 
-	updateAnimation(elapsed);
+		updateAnimation(elapsed);
 
-	sprite.setPosition(getPosition() - state->cameraPosition);
+		sprite.setPosition(getPosition() - state->cameraPosition);
+	}
+}
+
+void Spirit::kill() {
+	dead = true;
+	state->createParticle(getPosition() + sf::Vector2f(std::rand() % 7 - 3, std::rand() % 7 - 3), sf::Vector2f(0, -6), sf::Color::Black);
+	state->createParticle(getPosition() + sf::Vector2f(std::rand() % 7 - 3, std::rand() % 7 - 3), sf::Vector2f(1, -5), sf::Color::Black);
+	state->createParticle(getPosition() + sf::Vector2f(std::rand() % 7 - 3, std::rand() % 7 - 3), sf::Vector2f(-1, -5), sf::Color::Black);
 }
 
 void Spirit::draw(sf::RenderTarget &target, sf::RenderStates states) const {
-	target.draw(sprite);
+	if (!dead) {
+		target.draw(sprite);
+	}
 }
 
 void Spirit::updateVelocity(sf::Time elapsed) {
