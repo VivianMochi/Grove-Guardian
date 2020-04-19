@@ -27,8 +27,8 @@ void PlayState::init() {
 	nightOverlay.setSize(sf::Vector2f(240, 135));
 	nightOverlay.setFillColor(sf::Color::Transparent);
 
-	dayMusic.openFromFile("Resource/Music/Day.ogg");
-	nightMusic.openFromFile("Resource/Music/Night.ogg");
+	//dayMusic.openFromFile("Resource/Music/Day.ogg");
+	//nightMusic.openFromFile("Resource/Music/Night.ogg");
 
 	buildWorld(50, 50);
 
@@ -45,7 +45,9 @@ void PlayState::gotEvent(sf::Event event) {
 	if (event.type == sf::Event::MouseButtonPressed) {
 		if (event.mouseButton.button == sf::Mouse::Left) {
 			if (!getGridObject(getCursorGridLocation().x, getCursorGridLocation().y)) {
-				setGridObject(getCursorGridLocation().x, getCursorGridLocation().y, std::make_shared<Root>());
+				if (spendNutrients(1)) {
+					setGridObject(getCursorGridLocation().x, getCursorGridLocation().y, std::make_shared<Root>());
+				}
 			}
 		}
 	}
@@ -53,6 +55,10 @@ void PlayState::gotEvent(sf::Event event) {
 
 void PlayState::update(sf::Time elapsed) {
 	time += elapsed.asSeconds();
+	// Debug
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Z)) {
+		time += elapsed.asSeconds() * 10;
+	}
 	if (time >= secondsPerDay) {
 		time = 0;
 		hour += 1;
@@ -72,6 +78,8 @@ void PlayState::update(sf::Time elapsed) {
 	updateOverlays();
 
 	cameraPosition += (player.getPosition() - sf::Vector2f(120, 70) - cameraPosition) * elapsed.asSeconds() * 4.0f;
+
+	updateParticles(elapsed);
 
 	for (std::shared_ptr<GridTile> &object : tileGrid) {
 		if (object) {
@@ -117,6 +125,82 @@ sf::Color PlayState::getResourceColor(std::string resource) {
 	}
 }
 
+void PlayState::gainLight(float gained, int x, int y) {
+	light += gained;
+	if (light > maxLight) {
+		light = maxLight;
+	}
+}
+
+bool PlayState::spendLight(float spent, int x, int y) {
+	if (light >= spent) {
+		light -= spent;
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+void PlayState::gainWater(float gained, int x, int y) {
+	water += gained;
+	if (water > maxWater) {
+		water = maxWater;
+	}
+}
+
+bool PlayState::spendWater(float spent, int x, int y) {
+	if (water >= spent) {
+		water -= spent;
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+void PlayState::gainNutrients(float gained, int x, int y) {
+	nutrients += gained;
+	if (nutrients > maxNutrients) {
+		nutrients = maxNutrients;
+	}
+}
+
+bool PlayState::spendNutrients(float spent, int x, int y) {
+	if (nutrients >= spent) {
+		nutrients -= spent;
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+void PlayState::createParticle(sf::Vector2f position, sf::Vector2f velocity, sf::Color color, Particle::ParticleType type, bool onHud) {
+	Particle particle;
+	particle.type = type;
+	particle.position = position;
+	particle.velocity = velocity;
+	particle.color = color;
+	particle.onHud = onHud;
+	particles.push_back(particle);
+}
+
+void PlayState::updateParticles(sf::Time elapsed) {
+	auto particle = particles.begin();
+	while (particle != particles.end()) {
+		particle->lifetime -= elapsed.asSeconds();
+		particle->velocity *= std::powf(0.8, elapsed.asSeconds());
+		particle->position += particle->velocity * elapsed.asSeconds();
+		if (particle->lifetime <= 0) {
+			particle = particles.erase(particle);
+		}
+		else {
+			particle++;
+		}
+	}
+}
+
 void PlayState::render(sf::RenderWindow &window) {
 	for (std::shared_ptr<GridTile> &object : tileGrid) {
 		if (object) {
@@ -129,14 +213,34 @@ void PlayState::render(sf::RenderWindow &window) {
 		}
 	}
 
+	sf::Sprite particleSprite(loadTexture("Resource/Image/Particles.png"));
+	particleSprite.setOrigin(1, 1);
+	for (Particle &particle : particles) {
+		if (!particle.onHud) {
+			particleSprite.setTextureRect(sf::IntRect((int)particle.type * 3, 0, 3, 3));
+			particleSprite.setPosition(particle.position - cameraPosition);
+			particleSprite.setColor(particle.color);
+			window.draw(particleSprite);
+		}
+	}
+
 	window.draw(nightOverlay);
 	window.draw(transitionOverlay);
 
 	window.draw(cursor);
 
 	window.draw(player);
+
 	window.draw(hud);
 	window.draw(testText);
+	for (Particle &particle : particles) {
+		if (particle.onHud) {
+			particleSprite.setTextureRect(sf::IntRect((int)particle.type * 3, 0, 3, 3));
+			particleSprite.setPosition(particle.position);
+			particleSprite.setColor(particle.color);
+			window.draw(particleSprite);
+		}
+	}
 }
 
 void PlayState::buildWorld(int worldWidth, int worldHeight) {

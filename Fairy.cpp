@@ -83,6 +83,9 @@ void Fairy::updateAnimation(sf::Time elapsed) {
 	if (((velocity.x != 0 || velocity.y != 0) && frameTime > 0.08) || frameTime > 0.1) {
 		frameTime = 0;
 		frame++;
+		if ((velocity.x != 0 || velocity.y != 0)) {
+			state->createParticle(getPosition() + sf::Vector2f(std::rand() % 5 - 2, std::rand() % 7 - 3), -velocity / 10.0f + sf::Vector2f(0, 5), sf::Color(234, 136, 155));
+		}
 	}
 	if (frame > 6) {
 		frame = 0;
