@@ -75,10 +75,12 @@ void PlayState::update(sf::Time elapsed) {
 		if (hour == 2) {
 			dayMusic.play();
 			nightMusic.stop();
+			spirits.clear();
 		}
 		else if (hour == 9) {
 			dayMusic.stop();
 			nightMusic.play();
+			spawnSpirits();
 		}
 	}
 	updateOverlays();
@@ -110,6 +112,10 @@ void PlayState::update(sf::Time elapsed) {
 	}
 
 	calculateMaxResources();
+
+	for (Spirit &spirit : spirits) {
+		spirit.update(elapsed);
+	}
 
 	player.update(elapsed);
 	hud.update(elapsed);
@@ -283,6 +289,10 @@ void PlayState::render(sf::RenderWindow &window) {
 		}
 	}
 
+	for (const Spirit &spirit : spirits) {
+		window.draw(spirit);
+	}
+
 	window.draw(nightOverlay);
 	window.draw(transitionOverlay);
 
@@ -336,6 +346,21 @@ void PlayState::buildWorld(int worldWidth, int worldHeight) {
 				setGridObject(x, y, std::make_shared<Tree>());
 			}
 		}
+	}
+}
+
+void PlayState::spawnSpirits() {
+	for (int i = 0; i < day; i++) {
+		Spirit spirit;
+		spirit.setState(this);
+		if (std::rand() % 2) {
+			spirit.setPosition(std::rand() % 2 ? 0 : worldSize.x * 10, std::rand() % worldSize.y * 10);
+		}
+		else {
+			spirit.setPosition(std::rand() % worldSize.x * 10, std::rand() % 2 ? 0 : worldSize.y * 10);
+		}
+		spirit.init();
+		spirits.push_back(spirit);
 	}
 }
 

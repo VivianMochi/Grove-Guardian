@@ -6,6 +6,7 @@
 #include "Tree.h"
 #include "Hud.h"
 #include "GridTile.h"
+#include "Spirit.h"
 #include <SFML/Audio.hpp>
 #include <memory>
 
@@ -62,6 +63,7 @@ public:
 	sf::Vector2i worldSize;
 	std::vector<std::shared_ptr<GridTile>> tileGrid;
 	std::vector<std::shared_ptr<GridObject>> objectGrid;
+	std::vector<Spirit> spirits;
 
 	int day = 1;
 	int hour = 2;
@@ -76,6 +78,8 @@ public:
 
 private:
 	void buildWorld(int worldWidth, int worldHeight);
+
+	void spawnSpirits();
 
 	sf::Vector2i worldLocationToGrid(sf::Vector2f location);
 	sf::Vector2f screenLocationToWorld(sf::Vector2f location);
