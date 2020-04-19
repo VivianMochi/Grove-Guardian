@@ -46,15 +46,7 @@ void PlayState::init() {
 }
 
 void PlayState::gotEvent(sf::Event event) {
-	if (event.type == sf::Event::MouseButtonPressed) {
-		if (event.mouseButton.button == sf::Mouse::Left) {
-			if (!getGridObject(getCursorGridLocation().x, getCursorGridLocation().y)) {
-				if (spendNutrients(1, sf::Vector2f(getCursorGridLocation() * 10))) {
-					setGridObject(getCursorGridLocation().x, getCursorGridLocation().y, std::make_shared<Root>());
-				}
-			}
-		}
-	}
+
 }
 
 void PlayState::update(sf::Time elapsed) {
@@ -94,6 +86,17 @@ void PlayState::update(sf::Time elapsed) {
 	cameraPosition += (player.getPosition() - sf::Vector2f(120, 70) - cameraPosition) * elapsed.asSeconds() * 4.0f;
 
 	updateParticles(elapsed);
+
+	if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
+		sf::Vector2i selectedGridLocation = getCursorGridLocation();
+		if (!getGridObject(selectedGridLocation.x, selectedGridLocation.y)) {
+			if (isNearOwned(selectedGridLocation.x, selectedGridLocation.y)) {
+				if (spendNutrients(1, sf::Vector2f(getCursorGridLocation() * 10))) {
+					setGridObject(getCursorGridLocation().x, getCursorGridLocation().y, std::make_shared<Root>());
+				}
+			}
+		}
+	}
 
 	for (std::shared_ptr<GridTile> &object : tileGrid) {
 		if (object) {
@@ -308,6 +311,7 @@ void PlayState::buildWorld(int worldWidth, int worldHeight) {
 		for (int x = 0; x < worldSize.x; x++) {
 			std::shared_ptr<GridTile> newTile = std::make_shared<GridTile>();
 			newTile->setState(this);
+			newTile->gridPosition = sf::Vector2i(x, y);
 			newTile->setPosition(x * 10, y * 10);
 			newTile->init();
 			tileGrid[y * worldSize.x + x] = newTile;
@@ -358,9 +362,28 @@ std::shared_ptr<GridObject> PlayState::getGridObject(int x, int y) {
 void PlayState::setGridObject(int x, int y, std::shared_ptr<GridObject> newObject) {
 	if (x >= 0 && x <= worldSize.x - 1 && y >= 0 || y <= worldSize.y - 1) {
 		newObject->setState(this);
+		newObject->gridPosition = sf::Vector2i(x, y);
 		newObject->setPosition(x * 10, y * 10);
 		newObject->init();
 		objectGrid[y * worldSize.x + x] = newObject;
+	}
+}
+
+bool PlayState::isNearOwned(int x, int y) {
+	if (getGridObject(x - 1, y) && getGridObject(x - 1, y)->playerOwned) {
+		return true;
+	}
+	else if (getGridObject(x + 1, y) && getGridObject(x + 1, y)->playerOwned) {
+		return true;
+	}
+	else if (getGridObject(x, y - 1) && getGridObject(x, y - 1)->playerOwned) {
+		return true;
+	}
+	else if (getGridObject(x, y + 1) && getGridObject(x, y + 1)->playerOwned) {
+		return true;
+	}
+	else {
+		return false;
 	}
 }
 

@@ -23,6 +23,7 @@ void Tree::update(sf::Time elapsed) {
 }
 
 void Tree::onHour(int hour) {
+	GridObject::onHour(hour);
 	if (state->getTimeOfDay(hour) == "Day") {
 		state->gainLight(3, getPosition());
 		//state->gainWater(1, getPosition());

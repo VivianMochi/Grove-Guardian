@@ -45,6 +45,12 @@ public:
 	void gainNutrients(float gained, sf::Vector2f position = sf::Vector2f());
 	bool spendNutrients(float spent, sf::Vector2f position = sf::Vector2f());
 
+	std::shared_ptr<GridTile> getGridTile(int x, int y);
+	void setGridTile(int x, int y, std::string newType);
+	std::shared_ptr<GridObject> getGridObject(int x, int y);
+	void setGridObject(int x, int y, std::shared_ptr<GridObject> newObject);
+	bool isNearOwned(int x, int y);
+
 	void createParticle(sf::Vector2f position, sf::Vector2f velocity, sf::Color color, Particle::ParticleType type = Particle::ParticleType::dot, bool onHud = false);
 	void updateParticles(sf::Time elapsed);
 
@@ -69,11 +75,6 @@ public:
 
 private:
 	void buildWorld(int worldWidth, int worldHeight);
-
-	std::shared_ptr<GridTile> getGridTile(int x, int y);
-	void setGridTile(int x, int y, std::string newType);
-	std::shared_ptr<GridObject> getGridObject(int x, int y);
-	void setGridObject(int x, int y, std::shared_ptr<GridObject> newObject);
 
 	sf::Vector2i worldLocationToGrid(sf::Vector2f location);
 	sf::Vector2f screenLocationToWorld(sf::Vector2f location);

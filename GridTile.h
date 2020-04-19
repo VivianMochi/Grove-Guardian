@@ -8,6 +8,10 @@ public:
 	void update(sf::Time elapsed) override;
 
 	void setType(std::string type);
+	std::string getType();
+
+	sf::Vector2i gridPosition;
+	int quantity = 0;
 
 private:
 	// Inherited via Drawable

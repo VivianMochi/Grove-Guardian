@@ -9,6 +9,9 @@ void GridTile::init() {
 }
 
 void GridTile::update(sf::Time elapsed) {
+	if (getType() != "Grass" && quantity <= 0) {
+		setType("Grass");
+	}
 	sprite.setPosition(getPosition() - state->cameraPosition);
 }
 
@@ -19,10 +22,16 @@ void GridTile::setType(std::string type) {
 	}
 	else if (type == "Water") {
 		sprite.setTextureRect(sf::IntRect(40 + std::rand() % 4 * 10, 0, 10, 10));
+		quantity = 10 + std::rand() % 6;
 	}
 	else if (type == "Nutrients") {
 		sprite.setTextureRect(sf::IntRect(80 + std::rand() % 4 * 10, 0, 10, 10));
+		quantity = 10 + std::rand() % 6;
 	}
+}
+
+std::string GridTile::getType() {
+	return type;
 }
 
 void GridTile::draw(sf::RenderTarget & target, sf::RenderStates states) const {
