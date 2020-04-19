@@ -12,7 +12,7 @@ public:
 	void setTexture(const sf::Texture &texture);
 	void setText(std::string text);
 	void setColor(sf::Color color);
-	std::string getText();
+	std::string getText() const;
 
 	std::string text;
 

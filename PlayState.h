@@ -59,6 +59,11 @@ public:
 	void createParticle(sf::Vector2f position, sf::Vector2f velocity, sf::Color color, Particle::ParticleType type = Particle::ParticleType::dot, bool onHud = false);
 	void updateParticles(sf::Time elapsed);
 
+	sf::Vector2i worldLocationToGrid(sf::Vector2f location);
+	sf::Vector2f screenLocationToWorld(sf::Vector2f location);
+	sf::Vector2f getCursorLocation();
+	sf::Vector2i getCursorGridLocation();
+
 	// Game Stats
 	float secondsPerDay = 10;
 
@@ -67,6 +72,10 @@ public:
 	std::vector<std::shared_ptr<GridTile>> tileGrid;
 	std::vector<std::shared_ptr<GridObject>> objectGrid;
 	std::vector< std::shared_ptr<Spirit>> spirits;
+
+	std::shared_ptr<GridObject> selectedObject;
+	sf::CircleShape rangeFinder;
+	bool ignoreThisClick = false;
 
 	int day = 1;
 	int hour = 2;
@@ -83,11 +92,6 @@ private:
 	void buildWorld(int worldWidth, int worldHeight);
 
 	void spawnSpirits();
-
-	sf::Vector2i worldLocationToGrid(sf::Vector2f location);
-	sf::Vector2f screenLocationToWorld(sf::Vector2f location);
-	sf::Vector2f getCursorLocation();
-	sf::Vector2i getCursorGridLocation();
 
 	void updateOverlays();
 

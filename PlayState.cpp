@@ -24,6 +24,10 @@ void PlayState::init() {
 	nightOverlay.setSize(sf::Vector2f(240, 135));
 	nightOverlay.setFillColor(sf::Color::Transparent);
 
+	rangeFinder.setFillColor(sf::Color::Transparent);
+	rangeFinder.setOutlineColor(sf::Color::White);
+	rangeFinder.setOutlineThickness(2);
+
 	//dayMusic.openFromFile("Resource/Music/Day.ogg");
 	//nightMusic.openFromFile("Resource/Music/Night.ogg");
 
@@ -46,7 +50,54 @@ void PlayState::init() {
 }
 
 void PlayState::gotEvent(sf::Event event) {
-
+	if (event.type == sf::Event::MouseButtonPressed) {
+		if (event.mouseButton.button == sf::Mouse::Left) {
+			if (!hud.isCursorOnHud()) {
+				sf::Vector2i selectedGridLocation = getCursorGridLocation();
+				if (getGridObject(selectedGridLocation.x, selectedGridLocation.y)) {
+					selectedObject = getGridObject(selectedGridLocation.x, selectedGridLocation.y);
+					hud.populateInfo(selectedObject);
+				}
+			}
+			else if (selectedObject) {
+				sf::IntRect closeButton(240 - 14, 135 - 110, 12, 12);
+				sf::IntRect trashButton(240 - 14, 135 - 56, 12, 12);
+				sf::IntRect upgrade1Button(240 - 14, 135 - 42, 12, 12);
+				sf::IntRect upgrade2Button(240 - 14, 135 - 42, 12, 12);
+				sf::IntRect upgrade3Button(240 - 14, 135 - 42, 12, 12);
+				if (closeButton.contains(getCursorLocation().x, getCursorLocation().y)) {
+					selectedObject = std::shared_ptr<GridObject>();
+					ignoreThisClick = true;
+				}
+				if (isOwnedTree(selectedObject) && trashButton.contains(getCursorLocation().x, getCursorLocation().y)) {
+					selectedObject->kill();
+					ignoreThisClick = true;
+				}
+				if (upgrade1Button.contains(getCursorLocation().x, getCursorLocation().y)) {
+					hud.chooseUpgrade(0);
+				}
+				if (upgrade2Button.contains(getCursorLocation().x, getCursorLocation().y)) {
+					hud.chooseUpgrade(1);
+				}
+				if (upgrade3Button.contains(getCursorLocation().x, getCursorLocation().y)) {
+					hud.chooseUpgrade(2);
+				}
+			}
+		}
+		else if (event.mouseButton.button == sf::Mouse::Right) {
+			if (selectedObject) {
+				selectedObject = std::shared_ptr<GridObject>();
+				ignoreThisClick = true;
+			}
+		}
+	}
+	else if (event.type == sf::Event::KeyPressed) {
+		if (event.key.code == sf::Keyboard::Tab || event.key.code == sf::Keyboard::Escape) {
+			if (selectedObject) {
+				selectedObject = std::shared_ptr<GridObject>();
+			}
+		}
+	}
 }
 
 void PlayState::update(sf::Time elapsed) {
@@ -92,28 +143,44 @@ void PlayState::update(sf::Time elapsed) {
 	}
 	updateOverlays();
 
-	cameraPosition += (player.getPosition() - sf::Vector2f(120, 70) - cameraPosition) * elapsed.asSeconds() * 4.0f;
+	if (selectedObject) {
+		cameraPosition += (selectedObject->getPosition() - sf::Vector2f(86, 80) - cameraPosition) * elapsed.asSeconds() * 5.0f;
+
+		if (isOwnedTree(selectedObject)) {
+			rangeFinder.setRadius(std::dynamic_pointer_cast<Tree>(selectedObject)->range * 10 - 2);
+			rangeFinder.setOrigin(rangeFinder.getRadius(), rangeFinder.getRadius());
+			rangeFinder.setPosition(selectedObject->getPosition() - cameraPosition);
+		}
+	}
+	else {
+		cameraPosition += (player.getPosition() - sf::Vector2f(120, 70) - cameraPosition) * elapsed.asSeconds() * 5.0f;
+	}
 
 	updateParticles(elapsed);
 
-	if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
-		sf::Vector2i selectedGridLocation = getCursorGridLocation();
-		if (!getGridObject(selectedGridLocation.x, selectedGridLocation.y)) {
-			if (getDistanceToMother(selectedGridLocation.x, selectedGridLocation.y) < 1000000) {
-				if (spendNutrients(1, sf::Vector2f(selectedGridLocation * 10))) {
-					setGridObject(selectedGridLocation.x, selectedGridLocation.y, std::make_shared<Tree>());
+	if (!hud.isCursorOnHud() && !selectedObject && !ignoreThisClick) {
+		if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
+			sf::Vector2i gridLocation = getCursorGridLocation();
+			if (!getGridObject(gridLocation.x, gridLocation.y) && getGridTile(gridLocation.x, gridLocation.y)) {
+				if (getDistanceToMother(gridLocation.x, gridLocation.y) < 1000000) {
+					if (spendNutrients(1, sf::Vector2f(gridLocation * 10))) {
+						setGridObject(gridLocation.x, gridLocation.y, std::make_shared<Tree>());
+					}
+				}
+			}
+		}
+		else {
+			if (sf::Mouse::isButtonPressed(sf::Mouse::Right)) {
+				sf::Vector2i gridLocation = getCursorGridLocation();
+				std::shared_ptr<GridObject> object = getGridObject(gridLocation.x, gridLocation.y);
+				if (isOwnedTree(object) && std::dynamic_pointer_cast<Tree>(object)->getType() == "Root") {
+					object->kill();
 				}
 			}
 		}
 	}
-	else {
-		if (sf::Mouse::isButtonPressed(sf::Mouse::Right)) {
-			sf::Vector2i selectedGridLocation = getCursorGridLocation();
-			std::shared_ptr<GridObject> selectedObject = getGridObject(selectedGridLocation.x, selectedGridLocation.y);
-			if (isOwnedTree(selectedObject)) {
-				selectedObject->kill();
-			}
-		}
+	if (ignoreThisClick && !sf::Mouse::isButtonPressed(sf::Mouse::Left) && !sf::Mouse::isButtonPressed(sf::Mouse::Right)) {
+		ignoreThisClick = false;
 	}
 
 	for (std::shared_ptr<GridTile> &object : tileGrid) {
@@ -136,6 +203,10 @@ void PlayState::update(sf::Time elapsed) {
 
 	for (std::shared_ptr<Spirit> &spirit : spirits) {
 		spirit->update(elapsed);
+	}
+
+	if (selectedObject && selectedObject->dead) {
+		selectedObject = std::shared_ptr<GridObject>();
 	}
 
 	player.update(elapsed);
@@ -317,7 +388,13 @@ void PlayState::render(sf::RenderWindow &window) {
 	window.draw(nightOverlay);
 	window.draw(transitionOverlay);
 
-	window.draw(cursor);
+	if (isOwnedTree(selectedObject) && std::dynamic_pointer_cast<Tree>(selectedObject)->range > 0) {
+		window.draw(rangeFinder);
+	}
+
+	if (!hud.isCursorOnHud()) {
+		window.draw(cursor);
+	}
 
 	window.draw(player);
 
@@ -446,7 +523,7 @@ std::shared_ptr<GridObject> PlayState::getNearestOwned(sf::Vector2f position) {
 	std::shared_ptr<GridObject> closest;
 	float closestDistance = 1000000;
 	for (std::shared_ptr<GridObject> &object : objectGrid) {
-		if (object && isOwnedTree(object)) {
+		if (isOwnedTree(object)) {
 			float distance = std::sqrt(std::pow(object->getPosition().x - position.x, 2) + std::pow(object->getPosition().y - position.y, 2));
 			if (distance < closestDistance) {
 				closest = object;

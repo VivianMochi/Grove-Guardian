@@ -16,7 +16,7 @@ void Tree::init() {
 		distanceToMother = state->getDistanceToMother(gridPosition.x, gridPosition.y);
 	}
 
-	health = 3 + std::rand() % 70 * 0.1f;
+	health = 3 + std::rand() % 30 * 0.1f;
 	color = sf::Color(234, 136, 155);
 }
 
@@ -81,20 +81,23 @@ void Tree::onHour(int hour) {
 		}
 	}
 
-	if (getType() == "Mother Tree") {
-		if (state->getTimeOfDay(hour) == "Day") {
-			state->gainLight(3, getPosition());
-			//state->gainWater(1, getPosition());
-			//state->gainNutrients(1, getPosition());
-		}
-		else if (state->getTimeOfDay(hour) == "Transition") {
-			state->gainLight(1, getPosition());
-		}
+	if (state->getTimeOfDay(hour) == "Day") {
+		state->gainLight(lightIncome, getPosition());
+	}
+	else if (state->getTimeOfDay(hour) == "Transition") {
+		state->gainLight(lightIncome / 2, getPosition());
 	}
 }
 
 void Tree::onDay() {
 
+}
+
+void Tree::kill() {
+	GridObject::kill();
+	state->createParticle(getPosition() + sf::Vector2f(std::rand() % 7 - 3, std::rand() % 7 - 3), sf::Vector2f(0, -6), sf::Color(51, 30, 16));
+	state->createParticle(getPosition() + sf::Vector2f(std::rand() % 7 - 3, std::rand() % 7 - 3), sf::Vector2f(1, -5), sf::Color(51, 30, 16));
+	state->createParticle(getPosition() + sf::Vector2f(std::rand() % 7 - 3, std::rand() % 7 - 3), sf::Vector2f(-1, -5), sf::Color(51, 30, 16));
 }
 
 void Tree::setType(std::string type) {
@@ -104,16 +107,32 @@ void Tree::setType(std::string type) {
 		sprite.setTextureRect(sf::IntRect(std::rand() % 6 * 10, 10, 10, 10));
 		sprite.setOrigin(5, 5);
 	}
+	else if (type == "Sapling") {
+		buildTreeFromImage("Sapling");
+		maxLight = 5;
+		maxWater = 5;
+		maxNutrients = 5;
+		lightIncome = 1;
+		range = 2;
+		attackRate = 0.25;
+	}
 	else if (type == "Mother Tree") {
-		sprite.setTexture(state->loadTexture("Resource/Image/Trunk.png"));
-		sprite.setOrigin(sprite.getTextureRect().width / 2, sprite.getTextureRect().height - 5);
-		generateLeaves();
-
+		buildTreeFromImage("MotherTree");
 		maxLight = 15;
 		maxWater = 10;
 		maxNutrients = 20;
+		lightIncome = 3;
 		range = 5;
 		attackRate = 0.5;
+	}
+	else if (type == "Grand Mother") {
+		buildTreeFromImage("GrandMother");
+		maxLight = 30;
+		maxWater = 25;
+		maxNutrients = 50;
+		lightIncome = 4;
+		range = 7;
+		attackRate = 1;
 	}
 }
 
@@ -137,14 +156,24 @@ void Tree::draw(sf::RenderTarget &target, sf::RenderStates states) const {
 	}
 }
 
-void Tree::generateLeaves() {
+void Tree::buildTreeFromImage(std::string filename) {
+	sprite.setTexture(state->loadTexture("Resource/Image/Tree/" + filename + ".png"));
+	sprite.setTextureRect(sf::IntRect(0, 0, sprite.getTexture()->getSize().x, sprite.getTexture()->getSize().y));
+	sprite.setOrigin(sprite.getTextureRect().width / 2, sprite.getTextureRect().height - 5);
+	generateLeaves(filename);
+}
+
+void Tree::generateLeaves(std::string filename) {
 	leaves.clear();
 	sf::Image leafScanner;
-	leafScanner.loadFromFile("Resource/Image/Trunk.png");
+	leafScanner.loadFromFile("Resource/Image/Tree/" + filename + ".png");
 	for (int y = 0; y < leafScanner.getSize().y; y++) {
 		for (int x = 0; x < leafScanner.getSize().x; x++) {
 			if (leafScanner.getPixel(x, y) == sf::Color(0, 0, 255)) {
 				createLeafCluster(getPosition().x + x - sprite.getOrigin().x, getPosition().y + y - sprite.getOrigin().y);
+			}
+			else if (leafScanner.getPixel(x, y) == sf::Color(0, 255, 255)) {
+				createLeaf(getPosition().x + x - sprite.getOrigin().x, getPosition().y + y - sprite.getOrigin().y);
 			}
 		}
 	}

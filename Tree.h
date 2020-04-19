@@ -16,6 +16,8 @@ public:
 	void onHour(int hour) override;
 	void onDay() override;
 
+	void kill() override;
+
 	void setType(std::string type);
 	std::string getType();
 
@@ -23,6 +25,7 @@ public:
 	int maxLight = 0;
 	int maxWater = 0;
 	int maxNutrients = 0;
+	int lightIncome = 0;
 	float range = 0;
 	float attackRate = 0;
 	sf::Color color;
@@ -34,7 +37,8 @@ private:
 	// Inherited via Drawable
 	virtual void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
 
-	void generateLeaves();
+	void buildTreeFromImage(std::string filename);
+	void generateLeaves(std::string filename);
 	void createLeaf(float x, float y);
 	void createLeafCluster(float x, float y);
 

@@ -27,7 +27,7 @@ void BitmapText::setColor(sf::Color color) {
 	this->color = color;
 }
 
-std::string BitmapText::getText() {
+std::string BitmapText::getText() const {
 	return this->text;
 }
 
@@ -49,12 +49,12 @@ void BitmapText::draw(sf::RenderTarget &target, sf::RenderStates states) const {
 
 			if (character == '\n') {
 				currentPosition.x = getPosition().x;
-				currentPosition.y += 12;
+				currentPosition.y += 10;
 			}
 			else if (character == '\t') {
 				currentPosition.x = getPosition().x + (int)(currentPosition.x - getPosition().x) / 28 * 28 + 28;
 			}
-			else if (character == '!' || character == '.' || character == ':' || character == ';' || character == '*') {
+			else if (character == '!' || character == '.' || character == ':' || character == ';' || character == '*' || character == '\'') {
 				currentPosition.x += 3;
 			}
 			else if (character == '(' || character == ')' || character == '[' || character == ']') {
