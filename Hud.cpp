@@ -44,6 +44,10 @@ void Hud::init() {
 
 	nutrientsDeltaText = nutrientsText;
 	nutrientsDeltaText.setPosition(-100, -100);
+
+	lastLight = state->light;
+	lastWater = state->water;
+	lastNutrients = state->nutrients;
 }
 
 void Hud::update(sf::Time elapsed) {

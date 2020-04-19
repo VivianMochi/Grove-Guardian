@@ -16,9 +16,6 @@ void PlayState::init() {
 	testText.setText("");
 	testText.setColor(sf::Color::White);
 
-	hud.setState(this);
-	hud.init();
-
 	cursor.setTexture(loadTexture("Resource/Image/Cursor.png"));
 	cursor.setOrigin(6, 6);
 
@@ -41,6 +38,9 @@ void PlayState::init() {
 	calculateMaxResources();
 	water = maxWater;
 	nutrients = maxNutrients / 2;
+
+	hud.setState(this);
+	hud.init();
 
 	dayMusic.play();
 }
