@@ -50,6 +50,7 @@ public:
 	std::shared_ptr<GridObject> getGridObject(int x, int y);
 	void setGridObject(int x, int y, std::shared_ptr<GridObject> newObject);
 	bool isNearOwned(int x, int y);
+	std::shared_ptr<GridObject> getNearestOwned(sf::Vector2f position);
 
 	void createParticle(sf::Vector2f position, sf::Vector2f velocity, sf::Color color, Particle::ParticleType type = Particle::ParticleType::dot, bool onHud = false);
 	void updateParticles(sf::Time elapsed);

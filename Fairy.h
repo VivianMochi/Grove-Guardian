@@ -19,10 +19,14 @@ private:
 	sf::Vector2f velocity;
 	int frame;
 	float frameTime;
+	sf::Vector2f tetherPoint;
+	float tetherDistance;
 
 	// Stats
 	float acceleration = 100;
 	float topSpeed = 40;
+	float maxTetherDistance = 30;
+	sf::Color color;
 
 	// Resources
 	sf::Sprite bodySprite;

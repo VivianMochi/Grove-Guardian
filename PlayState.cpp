@@ -27,7 +27,7 @@ void PlayState::init() {
 	//dayMusic.openFromFile("Resource/Music/Day.ogg");
 	//nightMusic.openFromFile("Resource/Music/Night.ogg");
 
-	buildWorld(50, 50);
+	buildWorld(75, 75);
 
 	player.setState(this);
 	player.setPosition(worldSize.x / 2 * 10, worldSize.y / 2 * 10 + 10);
@@ -315,11 +315,21 @@ void PlayState::buildWorld(int worldWidth, int worldHeight) {
 			newTile->setPosition(x * 10, y * 10);
 			newTile->init();
 			tileGrid[y * worldSize.x + x] = newTile;
-			if (std::rand() % 20 == 0) {
-				setGridTile(x, y, "Water");
+			if (x > worldSize.x / 2 + 4 || x < worldSize.x / 2 - 4 || y > worldSize.y / 2 + 4 || y < worldSize.y / 2 - 4) {
+				if (std::rand() % 20 == 0) {
+					setGridTile(x, y, "Water");
+				}
+				else if (std::rand() % 20 == 0) {
+					setGridTile(x, y, "Nutrients");
+				}
 			}
-			else if (std::rand() % 20 == 0) {
-				setGridTile(x, y, "Nutrients");
+			else {
+				if (x == worldSize.x / 2 - 2 && y == worldSize.y / 2 + 2) {
+					setGridTile(x, y, "Water");
+				}
+				else if (x == worldSize.x / 2 + 2 && y == worldSize.y / 2 + 2) {
+					setGridTile(x, y, "Nutrients");
+				}
 			}
 
 			if (x == worldSize.x / 2 && y == worldSize.y / 2) {
@@ -385,6 +395,21 @@ bool PlayState::isNearOwned(int x, int y) {
 	else {
 		return false;
 	}
+}
+
+std::shared_ptr<GridObject> PlayState::getNearestOwned(sf::Vector2f position) {
+	std::shared_ptr<GridObject> closest;
+	float closestDistance = 1000000;
+	for (std::shared_ptr<GridObject> &object : objectGrid) {
+		if (object && object->playerOwned) {
+			float distance = std::sqrt(std::pow(object->getPosition().x - position.x, 2) + std::pow(object->getPosition().y - position.y, 2));
+			if (distance < closestDistance) {
+				closest = object;
+				closestDistance = distance;
+			}
+		}
+	}
+	return closest;
 }
 
 sf::Vector2i PlayState::worldLocationToGrid(sf::Vector2f location) {
