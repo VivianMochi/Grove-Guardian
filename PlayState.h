@@ -20,11 +20,21 @@ public:
 
 	sf::Vector2f cameraPosition;
 
-private:
+	std::string getTimeOfDay();
+
+	// Game Stats
+	float secondsPerDay = 10;
+
+	// Game data
 	sf::Vector2i worldSize;
 	std::vector<std::shared_ptr<GridTile>> tileGrid;
 	std::vector<std::shared_ptr<GridObject>> objectGrid;
 
+	int day = 1;
+	int hour = 3;
+	float time;
+
+private:
 	void buildWorld(int worldWidth, int worldHeight);
 
 	std::shared_ptr<GridTile> getGridTile(int x, int y);
@@ -37,6 +47,7 @@ private:
 	sf::Vector2f getCursorLocation();
 	sf::Vector2i getCursorGridLocation();
 
+	// Resources
 	BitmapText testText;
 	Fairy player;
 	Hud hud;

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Object.h"
+#include "BitmapText.h"
 #include <SFML/Graphics.hpp>
 
 class Hud : public Object {
@@ -13,7 +14,9 @@ private:
 	virtual void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
 
 	// Resources
-	sf::Sprite topHudSprite;
-	sf::Sprite topHudBg;
+	sf::Sprite dayBarSprite;
+	sf::RectangleShape dayBar;
+	sf::Sprite dayBarBg;
+	sf::Sprite sunSprite;
 };
 

@@ -43,6 +43,16 @@ void PlayState::gotEvent(sf::Event event) {
 }
 
 void PlayState::update(sf::Time elapsed) {
+	time += elapsed.asSeconds();
+	if (time >= secondsPerDay) {
+		time = 0;
+		hour += 1;
+		if (hour > 10) {
+			hour = 0;
+			day += 1;
+		}
+	}
+
 	cameraPosition += (player.getPosition() - sf::Vector2f(120, 70) - cameraPosition) * elapsed.asSeconds() * 4.0f;
 
 	for (std::shared_ptr<GridTile> &object : tileGrid) {
@@ -60,6 +70,18 @@ void PlayState::update(sf::Time elapsed) {
 	hud.update(elapsed);
 
 	cursor.setPosition(getCursorGridLocation().x * 10 - cameraPosition.x, getCursorGridLocation().y * 10 - cameraPosition.y);
+}
+
+std::string PlayState::getTimeOfDay() {
+	if (hour == 0 || hour == 1 || hour == 9 || hour == 10) {
+		return "Night";
+	}
+	else if (hour == 2 || hour == 8) {
+		return "Transition";
+	}
+	else {
+		return "Day";
+	}
 }
 
 void PlayState::render(sf::RenderWindow &window) {
