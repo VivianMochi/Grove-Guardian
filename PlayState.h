@@ -88,6 +88,8 @@ public:
 	float nutrients = 0;
 	int maxNutrients = 0;
 
+	bool gameOver = false;
+
 private:
 	void buildWorld(int worldWidth, int worldHeight);
 

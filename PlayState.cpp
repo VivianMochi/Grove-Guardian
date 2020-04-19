@@ -143,7 +143,10 @@ void PlayState::update(sf::Time elapsed) {
 	}
 	updateOverlays();
 
-	if (selectedObject) {
+	if (gameOver) {
+		cameraPosition += (sf::Vector2f(worldSize / 2) * 10.0f - sf::Vector2f(120, 70) - cameraPosition) * elapsed.asSeconds() * 5.0f;
+	}
+	else if (selectedObject) {
 		cameraPosition += (selectedObject->getPosition() - sf::Vector2f(86, 80) - cameraPosition) * elapsed.asSeconds() * 5.0f;
 
 		if (isOwnedTree(selectedObject)) {
@@ -188,8 +191,12 @@ void PlayState::update(sf::Time elapsed) {
 			object->update(elapsed);
 		}
 	}
+	bool motherPresent = false;
 	for (std::shared_ptr<GridObject> &object : objectGrid) {
 		if (object) {
+			if (isOwnedTree(object) && std::dynamic_pointer_cast<Tree>(object)->getType().find("Mother") != -1) {
+				motherPresent = true;
+			}
 			if (object->dead) {
 				object = std::shared_ptr<GridObject>();
 			}
@@ -197,6 +204,9 @@ void PlayState::update(sf::Time elapsed) {
 				object->update(elapsed);
 			}
 		}
+	}
+	if (motherPresent == false) {
+		gameOver = true;
 	}
 
 	calculateMaxResources();
