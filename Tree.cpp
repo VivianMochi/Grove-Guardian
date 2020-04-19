@@ -3,6 +3,11 @@
 #include "PlayState.h"
 
 void Tree::init() {
+	playerOwned = true;
+	maxLight = 15;
+	maxWater = 10;
+	maxNutrients = 20;
+
 	trunk.setTexture(state->loadTexture("Resource/Image/Trunk.png"));
 	trunk.setOrigin(20, 35);
 
@@ -15,6 +20,17 @@ void Tree::update(sf::Time elapsed) {
 	}
 
 	trunk.setPosition(getPosition() - state->cameraPosition);
+}
+
+void Tree::onHour(int hour) {
+	if (state->getTimeOfDay(hour) == "Day") {
+		state->gainLight(3, getPosition());
+		//state->gainWater(1, getPosition());
+		//state->gainNutrients(1, getPosition());
+	}
+	else if (state->getTimeOfDay(hour) == "Transition") {
+		state->gainLight(1, getPosition());
+	}
 }
 
 void Tree::draw(sf::RenderTarget &target, sf::RenderStates states) const {

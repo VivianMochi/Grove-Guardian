@@ -34,15 +34,16 @@ public:
 
 	sf::Vector2f cameraPosition;
 
-	std::string getTimeOfDay();
+	std::string getTimeOfDay(int hour);
 	sf::Color getResourceColor(std::string resource);
 
-	void gainLight(float gained, int x = -1, int y = -1);
-	bool spendLight(float spent, int x = -1, int y = -1);
-	void gainWater(float gained, int x = -1, int y = -1);
-	bool spendWater(float spent, int x = -1, int y = -1);
-	void gainNutrients(float gained, int x = -1, int y = -1);
-	bool spendNutrients(float spent, int x = -1, int y = -1);
+	void calculateMaxResources();
+	void gainLight(float gained, sf::Vector2f position = sf::Vector2f());
+	bool spendLight(float spent, sf::Vector2f position = sf::Vector2f());
+	void gainWater(float gained, sf::Vector2f position = sf::Vector2f());
+	bool spendWater(float spent, sf::Vector2f position = sf::Vector2f());
+	void gainNutrients(float gained, sf::Vector2f position = sf::Vector2f());
+	bool spendNutrients(float spent, sf::Vector2f position = sf::Vector2f());
 
 	void createParticle(sf::Vector2f position, sf::Vector2f velocity, sf::Color color, Particle::ParticleType type = Particle::ParticleType::dot, bool onHud = false);
 	void updateParticles(sf::Time elapsed);
@@ -60,11 +61,11 @@ public:
 	float time;
 
 	float light = 0;
-	int maxLight = 15;
-	float water = 10;
-	int maxWater = 10;
-	float nutrients = 10;
-	int maxNutrients = 20;
+	int maxLight = 0;
+	float water = 0;
+	int maxWater = 0;
+	float nutrients = 0;
+	int maxNutrients = 0;
 
 private:
 	void buildWorld(int worldWidth, int worldHeight);

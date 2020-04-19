@@ -13,6 +13,13 @@ private:
 	// Inherited via Drawable
 	virtual void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
 
+	void updateDeltaTexts(sf::Time elapsed);
+
+	// Internal data
+	float lastLight;
+	float lastWater;
+	float lastNutrients;
+
 	// Resources
 	sf::Sprite dayBarSprite;
 	sf::RectangleShape dayBar;
@@ -21,7 +28,10 @@ private:
 	sf::Sprite resourcesHud;
 	BitmapText dayText;
 	BitmapText lightText;
+	BitmapText lightDeltaText;
 	BitmapText waterText;
+	BitmapText waterDeltaText;
 	BitmapText nutrientsText;
+	BitmapText nutrientsDeltaText;
 };
 

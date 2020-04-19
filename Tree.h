@@ -9,6 +9,8 @@ public:
 	void init() override;
 	void update(sf::Time elapsed) override;
 
+	void onHour(int hour) override;
+
 private:
 	// Inherited via Drawable
 	virtual void draw(sf::RenderTarget &target, sf::RenderStates states) const override;

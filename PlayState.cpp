@@ -38,6 +38,10 @@ void PlayState::init() {
 
 	cameraPosition = player.getPosition() - sf::Vector2f(120, 70);
 
+	calculateMaxResources();
+	water = maxWater;
+	nutrients = maxNutrients / 2;
+
 	dayMusic.play();
 }
 
@@ -45,7 +49,7 @@ void PlayState::gotEvent(sf::Event event) {
 	if (event.type == sf::Event::MouseButtonPressed) {
 		if (event.mouseButton.button == sf::Mouse::Left) {
 			if (!getGridObject(getCursorGridLocation().x, getCursorGridLocation().y)) {
-				if (spendNutrients(1)) {
+				if (spendNutrients(1, sf::Vector2f(getCursorGridLocation() * 10))) {
 					setGridObject(getCursorGridLocation().x, getCursorGridLocation().y, std::make_shared<Root>());
 				}
 			}
@@ -61,9 +65,19 @@ void PlayState::update(sf::Time elapsed) {
 	}
 	if (time >= secondsPerDay) {
 		time = 0;
+		for (std::shared_ptr<GridObject> &object : objectGrid) {
+			if (object) {
+				object->onHour(hour);
+			}
+		}
 		hour += 1;
 		if (hour > 10) {
 			hour = 0;
+			for (std::shared_ptr<GridObject> &object : objectGrid) {
+				if (object) {
+					object->onDay();
+				}
+			}
 			day += 1;
 		}
 		if (hour == 2) {
@@ -92,13 +106,15 @@ void PlayState::update(sf::Time elapsed) {
 		}
 	}
 
+	calculateMaxResources();
+
 	player.update(elapsed);
 	hud.update(elapsed);
 
 	cursor.setPosition(getCursorGridLocation().x * 10 - cameraPosition.x, getCursorGridLocation().y * 10 - cameraPosition.y);
 }
 
-std::string PlayState::getTimeOfDay() {
+std::string PlayState::getTimeOfDay(int hour) {
 	if (hour == 0 || hour == 1 || hour == 9 || hour == 10) {
 		return "Night";
 	}
@@ -125,50 +141,90 @@ sf::Color PlayState::getResourceColor(std::string resource) {
 	}
 }
 
-void PlayState::gainLight(float gained, int x, int y) {
-	light += gained;
+void PlayState::calculateMaxResources() {
+	maxLight = 0;
+	maxWater = 0;
+	maxNutrients = 0;
+	for (std::shared_ptr<GridObject> &object : objectGrid) {
+		if (object && object->playerOwned) {
+			maxLight += object->maxLight;
+			maxWater += object->maxWater;
+			maxNutrients += object->maxNutrients;
+		}
+	}
 	if (light > maxLight) {
 		light = maxLight;
 	}
-}
-
-bool PlayState::spendLight(float spent, int x, int y) {
-	if (light >= spent) {
-		light -= spent;
-		return true;
-	}
-	else {
-		return false;
-	}
-}
-
-void PlayState::gainWater(float gained, int x, int y) {
-	water += gained;
 	if (water > maxWater) {
 		water = maxWater;
 	}
-}
-
-bool PlayState::spendWater(float spent, int x, int y) {
-	if (water >= spent) {
-		water -= spent;
-		return true;
-	}
-	else {
-		return false;
-	}
-}
-
-void PlayState::gainNutrients(float gained, int x, int y) {
-	nutrients += gained;
 	if (nutrients > maxNutrients) {
 		nutrients = maxNutrients;
 	}
 }
 
-bool PlayState::spendNutrients(float spent, int x, int y) {
+void PlayState::gainLight(float gained, sf::Vector2f position) {
+	light += gained;
+	if (light > maxLight) {
+		light = maxLight;
+	}
+	for (int i = 0; i < std::floor(gained); i++) {
+		createParticle(position + sf::Vector2f(-4, -4 * i), sf::Vector2f(0, -20), getResourceColor("Light"), Particle::plus);
+	}
+}
+
+bool PlayState::spendLight(float spent, sf::Vector2f position) {
+	if (light >= spent) {
+		light -= spent;
+		for (int i = 0; i < std::floor(spent); i++) {
+			createParticle(position + sf::Vector2f(-4, -4 * i), sf::Vector2f(0, -20), getResourceColor("Light"), Particle::minus);
+		}
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+void PlayState::gainWater(float gained, sf::Vector2f position) {
+	water += gained;
+	if (water > maxWater) {
+		water = maxWater;
+	}
+	for (int i = 0; i < std::floor(gained); i++) {
+		createParticle(position + sf::Vector2f(0, -4 * i), sf::Vector2f(0, -20), getResourceColor("Water"), Particle::plus);
+	}
+}
+
+bool PlayState::spendWater(float spent, sf::Vector2f position) {
+	if (water >= spent) {
+		water -= spent;
+		for (int i = 0; i < std::floor(spent); i++) {
+			createParticle(position + sf::Vector2f(0, -4 * i), sf::Vector2f(0, -20), getResourceColor("Water"), Particle::minus);
+		}
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+void PlayState::gainNutrients(float gained, sf::Vector2f position) {
+	nutrients += gained;
+	if (nutrients > maxNutrients) {
+		nutrients = maxNutrients;
+	}
+	for (int i = 0; i < std::floor(gained); i++) {
+		createParticle(position + sf::Vector2f(4, -4 * i), sf::Vector2f(0, -20), getResourceColor("Nutrients"), Particle::plus);
+	}
+}
+
+bool PlayState::spendNutrients(float spent, sf::Vector2f position) {
 	if (nutrients >= spent) {
 		nutrients -= spent;
+		for (int i = 0; i < std::floor(spent); i++) {
+			createParticle(position + sf::Vector2f(4, -4 * i), sf::Vector2f(0, -20), getResourceColor("Nutrients"), Particle::minus);
+		}
 		return true;
 	}
 	else {
@@ -190,7 +246,7 @@ void PlayState::updateParticles(sf::Time elapsed) {
 	auto particle = particles.begin();
 	while (particle != particles.end()) {
 		particle->lifetime -= elapsed.asSeconds();
-		particle->velocity *= std::powf(0.8, elapsed.asSeconds());
+		particle->velocity *= std::powf(0.2, elapsed.asSeconds());
 		particle->position += particle->velocity * elapsed.asSeconds();
 		if (particle->lifetime <= 0) {
 			particle = particles.erase(particle);

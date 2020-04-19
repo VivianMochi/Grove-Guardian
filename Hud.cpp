@@ -28,22 +28,31 @@ void Hud::init() {
 	lightText.setColor(state->getResourceColor("Light"));
 	lightText.setPosition(14, 18);
 
+	lightDeltaText = lightText;
+	lightDeltaText.setPosition(-100, -100);
+
 	waterText.setTexture(state->loadTexture("Resource/Image/Font.png"));
 	waterText.setColor(state->getResourceColor("Water"));
 	waterText.setPosition(14, 28);
 
+	waterDeltaText = waterText;
+	waterDeltaText.setPosition(-100, -100);
+
 	nutrientsText.setTexture(state->loadTexture("Resource/Image/Font.png"));
 	nutrientsText.setColor(state->getResourceColor("Nutrients"));
 	nutrientsText.setPosition(14, 38);
+
+	nutrientsDeltaText = nutrientsText;
+	nutrientsDeltaText.setPosition(-100, -100);
 }
 
 void Hud::update(sf::Time elapsed) {
 	dayBar.setSize(sf::Vector2f(11 * state->hour + std::floor(8 * state->time / state->secondsPerDay), 4));
 
-	if (state->getTimeOfDay() == "Night") {
+	if (state->getTimeOfDay(state->hour) == "Night") {
 		sunSprite.setTextureRect(sf::IntRect(32, 10, 16, 8));
 	}
-	else if (state->getTimeOfDay() == "Transition") {
+	else if (state->getTimeOfDay(state->hour) == "Transition") {
 		sunSprite.setTextureRect(sf::IntRect(16, 10, 16, 8));
 	}
 	else {
@@ -62,6 +71,12 @@ void Hud::update(sf::Time elapsed) {
 	lightText.setText(std::to_string(int(state->light)) + "/" + std::to_string(state->maxLight));
 	waterText.setText(std::to_string(int(state->water)) + "/" + std::to_string(state->maxWater));
 	nutrientsText.setText(std::to_string(int(state->nutrients)) + "/" + std::to_string(state->maxNutrients));
+
+	updateDeltaTexts(elapsed);
+	
+	lastLight = state->light;
+	lastWater = state->water;
+	lastNutrients = state->nutrients;
 }
 
 void Hud::draw(sf::RenderTarget &target, sf::RenderStates states) const {
@@ -75,4 +90,47 @@ void Hud::draw(sf::RenderTarget &target, sf::RenderStates states) const {
 	target.draw(dayBar);
 	target.draw(sunSprite);
 	target.draw(dayBarSprite);
+
+	target.draw(lightDeltaText);
+	target.draw(waterDeltaText);
+	target.draw(nutrientsDeltaText);
+}
+
+void Hud::updateDeltaTexts(sf::Time elapsed) {
+
+	if (lightDeltaText.getPosition().x > 0) {
+		lightDeltaText.move((sf::Vector2f(53, 18) - lightDeltaText.getPosition()) * elapsed.asSeconds() * 2.0f);
+		if (lightDeltaText.getPosition().x > 52) {
+			lightDeltaText.setPosition(-100, -100);
+		}
+	}
+	if ((int)state->light != (int)lastLight) {
+		int delta = (int)state->light - (int)lastLight;
+		lightDeltaText.setText((delta > 0 ? "+" : "") + std::to_string((int)state->light - (int)lastLight));
+		lightDeltaText.setPosition(40, 18);
+	}
+
+	if (waterDeltaText.getPosition().x > 0) {
+		waterDeltaText.move((sf::Vector2f(53, 28) - waterDeltaText.getPosition()) * elapsed.asSeconds() * 2.0f);
+		if (waterDeltaText.getPosition().x > 52) {
+			waterDeltaText.setPosition(-100, -100);
+		}
+	}
+	if ((int)state->water != (int)lastWater) {
+		int delta = (int)state->water - (int)lastWater;
+		waterDeltaText.setText((delta > 0 ? "+" : "") + std::to_string((int)state->water - (int)lastWater));
+		waterDeltaText.setPosition(40, 28);
+	}
+
+	if (nutrientsDeltaText.getPosition().x > 0) {
+		nutrientsDeltaText.move((sf::Vector2f(53, 38) - nutrientsDeltaText.getPosition()) * elapsed.asSeconds() * 2.0f);
+		if (nutrientsDeltaText.getPosition().x > 52) {
+			nutrientsDeltaText.setPosition(-100, -100);
+		}
+	}
+	if ((int)state->nutrients != (int)lastNutrients) {
+		int delta = (int)state->nutrients - (int)lastNutrients;
+		nutrientsDeltaText.setText((delta > 0 ? "+" : "") + std::to_string((int)state->nutrients - (int)lastNutrients));
+		nutrientsDeltaText.setPosition(40, 38);
+	}
 }
