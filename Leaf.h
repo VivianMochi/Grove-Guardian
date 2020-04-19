@@ -18,6 +18,7 @@ private:
 	int frame;
 	float frameTime;
 	float framePeriod;
+	int offset;
 
 	// Resources
 	sf::Sprite sprite;

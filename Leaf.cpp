@@ -15,13 +15,21 @@ void Leaf::update(sf::Time elapsed) {
 	if (frameTime > framePeriod) {
 		frameTime = 0;
 		frame++;
+		if (std::rand() % 4 == 0) {
+			if (offset == 0) {
+				offset = -1;
+			}
+			else {
+				offset = 0;
+			}
+		}
 	}
 	if (frame > 3) {
 		frame = 0;
 	}
 
 	sprite.setTextureRect(sf::IntRect(10 * frame, 0, 10, 10));
-	sprite.setPosition(getPosition() - state->cameraPosition);
+	sprite.setPosition(getPosition() - state->cameraPosition + sf::Vector2f(offset, 0));
 }
 
 void Leaf::generateFramePeriod() {

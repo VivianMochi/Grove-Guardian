@@ -6,11 +6,7 @@ void Tree::init() {
 	trunk.setTexture(state->loadTexture("Resource/Image/Trunk.png"));
 	trunk.setOrigin(20, 35);
 
-	// Create leaves
-	createLeafCluster(0, -33);
-	createLeafCluster(-11, -23);
-	createLeafCluster(11, -23);
-	createLeafCluster(0, -20);
+	generateLeaves();
 }
 
 void Tree::update(sf::Time elapsed) {
@@ -25,6 +21,18 @@ void Tree::draw(sf::RenderTarget &target, sf::RenderStates states) const {
 	target.draw(trunk);
 	for (const Leaf &leaf : leaves) {
 		target.draw(leaf);
+	}
+}
+
+void Tree::generateLeaves() {
+	sf::Image leafScanner;
+	leafScanner.loadFromFile("Resource/Image/Trunk.png");
+	for (int y = 0; y < leafScanner.getSize().y; y++) {
+		for (int x = 0; x < leafScanner.getSize().x; x++) {
+			if (leafScanner.getPixel(x, y) == sf::Color(0, 0, 255)) {
+				createLeafCluster(x - trunk.getOrigin().x, y - trunk.getOrigin().y);
+			}
+		}
 	}
 }
 
