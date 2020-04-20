@@ -2,6 +2,7 @@
 
 #include "PlayState.h"
 #include "TreeTypes.h"
+#include "Ruin.h"
 
 void Hud::init() {
 	dayBarSprite.setTexture(state->loadTexture("Resource/Image/DayBar.png"));
@@ -119,19 +120,52 @@ void Hud::populateInfo(std::shared_ptr<GridObject> object) {
 	upgrade2Text.setText("");
 	upgrade3Text.setText("");
 	if (std::dynamic_pointer_cast<Tree>(object)) {
+		infoPane.setTexture(state->loadTexture("Resource/Image/InfoPane.png"));
 		std::shared_ptr<Tree> treeObject = std::dynamic_pointer_cast<Tree>(object);
 		infoTitle.setText(treeObject->getType());
 		infoDescription.setText(getDescription(treeObject->getType()));
 		loadStats(treeObject);
 		if (getUpgradeOptions(treeObject->getType()).size() >= 1) {
-			upgrade1Text.setText(getUpgradeOptions(treeObject->getType())[0]);
+			if (state->isResearched(getUpgradeOptions(treeObject->getType())[0])) {
+				upgrade1Text.setText(getUpgradeOptions(treeObject->getType())[0]);
+			}
+			else {
+				upgrade1Text.setText("???");
+			}
 		}
 		if (getUpgradeOptions(treeObject->getType()).size() >= 2) {
-			upgrade2Text.setText(getUpgradeOptions(treeObject->getType())[1]);
+			if (state->isResearched(getUpgradeOptions(treeObject->getType())[1])) {
+				upgrade2Text.setText(getUpgradeOptions(treeObject->getType())[1]);
+			}
+			else {
+				upgrade2Text.setText("???");
+			}
 		}
 		if (getUpgradeOptions(treeObject->getType()).size() >= 3) {
-			upgrade2Text.setText(getUpgradeOptions(treeObject->getType())[2]);
+			if (state->isResearched(getUpgradeOptions(treeObject->getType())[2])) {
+				upgrade3Text.setText(getUpgradeOptions(treeObject->getType())[2]);
+			}
+			else {
+				upgrade3Text.setText("???");
+			}
 		}
+	}
+	else if (std::dynamic_pointer_cast<Ruin>(object)) {
+		std::shared_ptr<Ruin> ruinObject = std::dynamic_pointer_cast<Ruin>(object);
+		infoPane.setTexture(state->loadTexture("Resource/Image/ResearchPane.png"));
+		if (ruinObject->getType() == "Large") {
+			infoTitle.setText(ruinObject->getSubType() + " Tower");
+			if (infoTitle.getText() == "Nutrients Tower") {
+				infoTitle.setText("Nutrient Tower");
+			}
+			infoDescription.setText("A Monument that\ndesires " + ruinObject->getSubType() + ".\n\nSacrifice enough\nresources to all\ntowers to win\nthe game.");
+		}
+		else {
+			infoTitle.setText("Garden Shrine");
+			infoDescription.setText("A shrine that\nteaches how to\ngrow the\n" + ruinObject->getSubType() + "\nplant when given\nenough light.");
+		}
+		upgrade3Text.setText(std::to_string(ruinObject->charge) + "/" + std::to_string(ruinObject->maxCharge));
+		stats.clear();
 	}
 	else {
 		infoTitle.setText("Unknown");
@@ -154,25 +188,48 @@ bool Hud::isCursorOnHud() const {
 }
 
 void Hud::chooseUpgrade(int selection) {
-	std::string newType = "";
-	if (selection == 0) {
-		newType = upgrade1Text.getText();
-	}
-	else if (selection == 1) {
-		newType = upgrade2Text.getText();
-	}
-	else if (selection == 2) {
-		newType = upgrade3Text.getText();
-	}
+	if (state->isOwnedTree(state->selectedObject)) {
+		std::string newType = "";
+		if (selection == 0) {
+			newType = upgrade1Text.getText();
+		}
+		else if (selection == 1) {
+			newType = upgrade2Text.getText();
+		}
+		else if (selection == 2) {
+			newType = upgrade3Text.getText();
+		}
 
-	if (newType != "") {
-		if (state->selectedObject && std::dynamic_pointer_cast<Tree>(state->selectedObject)) {
-			if (state->light >= getUpgradeCost(newType).light && state->nutrients >= getUpgradeCost(newType).nutrients) {
-				state->spendLight(getUpgradeCost(newType).light, state->selectedObject->getPosition());
-				state->spendNutrients(getUpgradeCost(newType).nutrients, state->selectedObject->getPosition());
-				std::dynamic_pointer_cast<Tree>(state->selectedObject)->setType(newType);
-				populateInfo(state->selectedObject);
+		if (newType != "" && newType != "???") {
+			if (state->selectedObject && std::dynamic_pointer_cast<Tree>(state->selectedObject)) {
+				if (state->light >= getUpgradeCost(newType).light && state->nutrients >= getUpgradeCost(newType).nutrients) {
+					state->spendLight(getUpgradeCost(newType).light, state->selectedObject->getPosition());
+					state->spendNutrients(getUpgradeCost(newType).nutrients, state->selectedObject->getPosition());
+					std::dynamic_pointer_cast<Tree>(state->selectedObject)->setType(newType);
+					populateInfo(state->selectedObject);
+				}
 			}
+		}
+	}
+	else if (std::dynamic_pointer_cast<Ruin>(state->selectedObject)) {
+		if (selection == 2) {
+			std::shared_ptr<Ruin> ruinObject = std::dynamic_pointer_cast<Ruin>(state->selectedObject);
+			if (ruinObject->getSubType() == "Water") {
+				int amountSpent = std::min(ruinObject->maxCharge - ruinObject->charge, (int)state->water);
+				ruinObject->charge += amountSpent;
+				state->spendWater(amountSpent, ruinObject->getPosition());
+			}
+			else if (ruinObject->getSubType() == "Nutrients") {
+				int amountSpent = std::min(ruinObject->maxCharge - ruinObject->charge, (int)state->nutrients);
+				ruinObject->charge += amountSpent;
+				state->spendNutrients(amountSpent, ruinObject->getPosition());
+			}
+			else {
+				int amountSpent = std::min(ruinObject->maxCharge - ruinObject->charge, (int)state->light);
+				ruinObject->charge += amountSpent;
+				state->spendLight(amountSpent, ruinObject->getPosition());
+			}
+			populateInfo(ruinObject);
 		}
 	}
 }
@@ -199,38 +256,40 @@ void Hud::draw(sf::RenderTarget &target, sf::RenderStates states) const {
 	target.draw(upgrade1Text);
 	target.draw(upgrade2Text);
 	target.draw(upgrade3Text);
-	sf::Sprite noUpgrade(state->loadTexture("Resource/Image/NoUpgrade.png"));
-	if (upgrade1Text.text == "") {
-		noUpgrade.setPosition(infoPane.getPosition() + sf::Vector2f(2, 70));
-		target.draw(noUpgrade);
-	}
-	if (upgrade2Text.text == "") {
-		noUpgrade.setPosition(infoPane.getPosition() + sf::Vector2f(2, 84));
-		target.draw(noUpgrade);
-	}
-	if (upgrade3Text.text == "") {
-		noUpgrade.setPosition(infoPane.getPosition() + sf::Vector2f(2, 98));
-		target.draw(noUpgrade);
+	if (state->isOwnedTree(state->selectedObject)) {
+		sf::Sprite noUpgrade(state->loadTexture("Resource/Image/NoUpgrade.png"));
+		if (upgrade1Text.text == "") {
+			noUpgrade.setPosition(infoPane.getPosition() + sf::Vector2f(2, 70));
+			target.draw(noUpgrade);
+		}
+		if (upgrade2Text.text == "") {
+			noUpgrade.setPosition(infoPane.getPosition() + sf::Vector2f(2, 84));
+			target.draw(noUpgrade);
+		}
+		if (upgrade3Text.text == "") {
+			noUpgrade.setPosition(infoPane.getPosition() + sf::Vector2f(2, 98));
+			target.draw(noUpgrade);
+		}
 	}
 
-	if (state->selectedObject) {
+	if (state->isOwnedTree(state->selectedObject)) {
 		sf::IntRect upgrade1Button(240 - 14, 135 - 42, 12, 12);
-		sf::IntRect upgrade2Button(240 - 14, 135 - 42, 12, 12);
-		sf::IntRect upgrade3Button(240 - 14, 135 - 42, 12, 12);
+		sf::IntRect upgrade2Button(240 - 14, 135 - 28, 12, 12);
+		sf::IntRect upgrade3Button(240 - 14, 135 - 14, 12, 12);
 		if (upgrade1Button.contains(state->getCursorLocation().x, state->getCursorLocation().y)) {
-			if (upgrade1Text.getText() != "") {
+			if (upgrade1Text.getText() != "" && upgrade1Text.getText() != "???") {
 				target.draw(costPane);
 				renderCost(target, getUpgradeCost(upgrade1Text.getText()).light, getUpgradeCost(upgrade1Text.getText()).nutrients);
 			}
 		}
 		else if (upgrade2Button.contains(state->getCursorLocation().x, state->getCursorLocation().y)) {
-			if (upgrade2Text.getText() != "") {
+			if (upgrade2Text.getText() != "" && upgrade2Text.getText() != "???") {
 				target.draw(costPane);
 				renderCost(target, getUpgradeCost(upgrade2Text.getText()).light, getUpgradeCost(upgrade2Text.getText()).nutrients);
 			}
 		}
 		else if (upgrade3Button.contains(state->getCursorLocation().x, state->getCursorLocation().y)) {
-			if (upgrade3Text.getText() != "") {
+			if (upgrade3Text.getText() != "" && upgrade3Text.getText() != "???") {
 				target.draw(costPane);
 				renderCost(target, getUpgradeCost(upgrade3Text.getText()).light, getUpgradeCost(upgrade3Text.getText()).nutrients);
 			}

@@ -64,6 +64,8 @@ public:
 	sf::Vector2f getCursorLocation();
 	sf::Vector2i getCursorGridLocation();
 
+	bool isResearched(std::string type);
+
 	// Game Stats
 	float secondsPerDay = 10;
 
@@ -89,9 +91,11 @@ public:
 	int maxNutrients = 0;
 
 	bool gameOver = false;
+	bool gameWon = false;
 
 private:
 	void buildWorld(int worldWidth, int worldHeight);
+	void createRuin(std::string type, std::string subType);
 
 	void spawnSpirits();
 

@@ -10,7 +10,8 @@ void GridTile::init() {
 
 void GridTile::update(sf::Time elapsed) {
 	if (getType() != "Grass" && quantity <= 0) {
-		setType("Grass");
+		//setType("Grass");
+		quantity = 10;
 	}
 	sprite.setPosition(getPosition() - state->cameraPosition);
 }

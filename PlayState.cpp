@@ -1,6 +1,7 @@
 #include "PlayState.h"
 
 #include "Tree.h"
+#include "Ruin.h"
 
 PlayState::PlayState() {
 
@@ -28,10 +29,11 @@ void PlayState::init() {
 	rangeFinder.setOutlineColor(sf::Color::White);
 	rangeFinder.setOutlineThickness(2);
 
-	//dayMusic.openFromFile("Resource/Music/Day.ogg");
-	//nightMusic.openFromFile("Resource/Music/Night.ogg");
+	dayMusic.openFromFile("Resource/Music/Day.ogg");
+	nightMusic.openFromFile("Resource/Music/Night.ogg");
 
-	buildWorld(75, 75);
+	//buildWorld(75, 75);
+	buildWorld(20, 20);
 
 	player.setState(this);
 	player.setPosition(worldSize.x / 2 * 10, worldSize.y / 2 * 10 + 10);
@@ -53,9 +55,9 @@ void PlayState::gotEvent(sf::Event event) {
 	if (event.type == sf::Event::MouseButtonPressed) {
 		if (event.mouseButton.button == sf::Mouse::Left) {
 			if (!hud.isCursorOnHud()) {
-				sf::Vector2i selectedGridLocation = getCursorGridLocation();
-				if (getGridObject(selectedGridLocation.x, selectedGridLocation.y)) {
-					selectedObject = getGridObject(selectedGridLocation.x, selectedGridLocation.y);
+				std::shared_ptr<GridObject> object = getGridObject(getCursorGridLocation().x, getCursorGridLocation().y);
+				if (object && !object->dead && object->playerOwned) {
+					selectedObject = object;
 					hud.populateInfo(selectedObject);
 				}
 			}
@@ -63,8 +65,8 @@ void PlayState::gotEvent(sf::Event event) {
 				sf::IntRect closeButton(240 - 14, 135 - 110, 12, 12);
 				sf::IntRect trashButton(240 - 14, 135 - 56, 12, 12);
 				sf::IntRect upgrade1Button(240 - 14, 135 - 42, 12, 12);
-				sf::IntRect upgrade2Button(240 - 14, 135 - 42, 12, 12);
-				sf::IntRect upgrade3Button(240 - 14, 135 - 42, 12, 12);
+				sf::IntRect upgrade2Button(240 - 14, 135 - 28, 12, 12);
+				sf::IntRect upgrade3Button(240 - 14, 135 - 14, 12, 12);
 				if (closeButton.contains(getCursorLocation().x, getCursorLocation().y)) {
 					selectedObject = std::shared_ptr<GridObject>();
 					ignoreThisClick = true;
@@ -112,6 +114,11 @@ void PlayState::update(sf::Time elapsed) {
 	// Debug
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Z)) {
 		time += elapsed.asSeconds() * 10;
+	}
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::X)) {
+		nutrients += 500;
+		water += 500;
+		light += 500;
 	}
 	if (time >= secondsPerDay) {
 		time = 0;
@@ -192,11 +199,16 @@ void PlayState::update(sf::Time elapsed) {
 		}
 	}
 	bool motherPresent = false;
+	bool towersCharged = true;
 	for (std::shared_ptr<GridObject> &object : objectGrid) {
 		if (object) {
 			if (isOwnedTree(object) && std::dynamic_pointer_cast<Tree>(object)->getType().find("Mother") != -1) {
 				motherPresent = true;
 			}
+			else if (std::dynamic_pointer_cast<Ruin>(object) && std::dynamic_pointer_cast<Ruin>(object)->getType() == "Large" && !std::dynamic_pointer_cast<Ruin>(object)->isCharged()) {
+				towersCharged = false;
+			}
+
 			if (object->dead) {
 				object = std::shared_ptr<GridObject>();
 			}
@@ -207,6 +219,10 @@ void PlayState::update(sf::Time elapsed) {
 	}
 	if (motherPresent == false) {
 		gameOver = true;
+	}
+	else if (towersCharged == true) {
+		gameOver = true;
+		gameWon = true;
 	}
 
 	calculateMaxResources();
@@ -455,10 +471,29 @@ void PlayState::buildWorld(int worldWidth, int worldHeight) {
 			}
 		}
 	}
+	createRuin("Large", "Light");
+	createRuin("Large", "Water");
+	createRuin("Large", "Nutrients");
+	createRuin("Small", "Willow");
+	createRuin("Small", "Cactus");
+	createRuin("Small", "Soybean");
+	createRuin("Small", "Waterlily");
+	createRuin("Small", "Glowshroom");
+	createRuin("Small", "Grand Mother");
+}
+
+void PlayState::createRuin(std::string type, std::string subType) {
+	int x = std::rand() % worldSize.x;
+	int y = std::rand() % worldSize.y;
+	while (getGridObject(x, y)) {
+		x = std::rand() % worldSize.x;
+		y = std::rand() % worldSize.y;
+	}
+	setGridObject(x, y, std::make_shared<Ruin>(type, subType));
 }
 
 void PlayState::spawnSpirits() {
-	for (int i = 0; i < day; i++) {
+	for (int i = 0; i < day * 2; i++) {
 		std::shared_ptr<Spirit> spirit = std::make_shared<Spirit>();
 		spirit->setState(this);
 		if (std::rand() % 2) {
@@ -577,6 +612,18 @@ sf::Vector2f PlayState::getCursorLocation() {
 
 sf::Vector2i PlayState::getCursorGridLocation() {
 	return worldLocationToGrid(screenLocationToWorld(getCursorLocation()));
+}
+
+bool PlayState::isResearched(std::string type) {
+	bool output = true;
+	for (std::shared_ptr<GridObject> &object : objectGrid) {
+		if (object) {
+			if (std::dynamic_pointer_cast<Ruin>(object) && std::dynamic_pointer_cast<Ruin>(object)->getSubType() == type && !std::dynamic_pointer_cast<Ruin>(object)->isCharged()) {
+				output = false;
+			}
+		}
+	}
+	return output;
 }
 
 void PlayState::updateOverlays() {
