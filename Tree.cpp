@@ -81,11 +81,18 @@ void Tree::onHour(int hour) {
 		}
 	}
 
-	if (state->getTimeOfDay(hour) == "Day") {
-		state->gainLight(lightIncome, getPosition());
+	if (getType() != "Glowshroom") {
+		if (state->getTimeOfDay(hour) == "Day") {
+			state->gainLight(lightIncome, getPosition());
+		}
+		else if (state->getTimeOfDay(hour) == "Transition") {
+			state->gainLight(lightIncome / 2, getPosition());
+		}
 	}
-	else if (state->getTimeOfDay(hour) == "Transition") {
-		state->gainLight(lightIncome / 2, getPosition());
+	else {
+		if (state->getTimeOfDay(hour) == "Night") {
+			state->gainLight(3, getPosition());
+		}
 	}
 }
 
@@ -109,11 +116,20 @@ void Tree::setType(std::string type) {
 	}
 	else if (type == "Sapling") {
 		buildTreeFromImage("Sapling");
-		maxLight = 5;
-		maxWater = 5;
-		maxNutrients = 5;
+		maxLight = 2;
+		maxWater = 1;
+		maxNutrients = 2;
 		lightIncome = 1;
-		range = 2;
+		range = 3;
+		attackRate = 0.25;
+	}
+	else if (type == "Sapling") {
+		buildTreeFromImage("Shrub");
+		maxLight = 2;
+		maxWater = 1;
+		maxNutrients = 2;
+		lightIncome = 1;
+		range = 3;
 		attackRate = 0.25;
 	}
 	else if (type == "Mother Tree") {
@@ -127,8 +143,8 @@ void Tree::setType(std::string type) {
 	}
 	else if (type == "Grand Mother") {
 		buildTreeFromImage("GrandMother");
-		maxLight = 30;
-		maxWater = 25;
+		maxLight = 50;
+		maxWater = 50;
 		maxNutrients = 50;
 		lightIncome = 4;
 		range = 7;

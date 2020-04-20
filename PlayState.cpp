@@ -12,10 +12,13 @@ PlayState::~PlayState() {
 }
 
 void PlayState::init() {
-	testText.setTexture(loadTexture("Resource/Image/Font.png"));
-	testText.setPosition(2, 2);
-	testText.setText("");
-	testText.setColor(sf::Color::White);
+	gameOverlay.setSize(sf::Vector2f(240, 135));
+	gameOverlay.setFillColor(sf::Color::Black);
+
+	gameText.setTexture(loadTexture("Resource/Image/Font.png"));
+	gameText.setPosition(135 / 2 - 5, 30);
+	gameText.setText("Protect the Grove");
+	gameText.setColor(sf::Color::White);
 
 	cursor.setTexture(loadTexture("Resource/Image/Cursor.png"));
 	cursor.setOrigin(6, 6);
@@ -217,13 +220,26 @@ void PlayState::update(sf::Time elapsed) {
 			}
 		}
 	}
-	if (motherPresent == false) {
+	if (!gameOver && motherPresent == false) {
 		gameOver = true;
+		gameText.setText("The mother tree has\nfallen on Day " + std::to_string(day));
 	}
-	else if (towersCharged == true) {
+	else if (!gameOver && towersCharged == true) {
 		gameOver = true;
 		gameWon = true;
+		gameText.setText("The grove is safe.\nDays taken: " + std::to_string(day));
 	}
+	if (!gameOver) {
+		gameOverlayAlpha += (0 - gameOverlayAlpha) * elapsed.asSeconds() * 0.5;
+		gameOverlay.setFillColor(sf::Color(0, 0, 0, gameOverlayAlpha));
+	}
+	else {
+		gameOverlayAlpha += (255 - gameOverlayAlpha) * elapsed.asSeconds() * 0.5;
+		gameOverlay.setFillColor(sf::Color(0, 0, 0, gameOverlayAlpha));
+		dayMusic.setVolume(std::max((255 - gameOverlayAlpha) / 255.0f * 100.0f, 0.0f));
+		nightMusic.setVolume(std::max((255 - gameOverlayAlpha) / 255.0f * 100.0f, 0.0f));
+	}
+	gameText.setColor(sf::Color(255, 255, 255, std::min(255.0f, gameOverlayAlpha * 2)));
 
 	calculateMaxResources();
 
@@ -425,7 +441,6 @@ void PlayState::render(sf::RenderWindow &window) {
 	window.draw(player);
 
 	window.draw(hud);
-	window.draw(testText);
 	for (Particle &particle : particles) {
 		if (particle.onHud) {
 			particleSprite.setTextureRect(sf::IntRect((int)particle.type * 3, 0, 3, 3));
@@ -434,6 +449,9 @@ void PlayState::render(sf::RenderWindow &window) {
 			window.draw(particleSprite);
 		}
 	}
+
+	window.draw(gameOverlay);
+	window.draw(gameText);
 }
 
 void PlayState::buildWorld(int worldWidth, int worldHeight) {

@@ -102,13 +102,15 @@ private:
 	void updateOverlays();
 
 	// Resources
-	BitmapText testText;
 	Fairy player;
 	Hud hud;
 	sf::Sprite cursor;
 
 	std::vector<Particle> particles;
 
+	sf::RectangleShape gameOverlay;
+	float gameOverlayAlpha = 255;
+	BitmapText gameText;
 	sf::RectangleShape transitionOverlay;
 	sf::RectangleShape nightOverlay;
 

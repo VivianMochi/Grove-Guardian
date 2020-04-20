@@ -57,10 +57,10 @@ UpgradeCost getUpgradeCost(std::string type) {
 		return UpgradeCost(10, 2);
 	}
 	else if (type == "Glowshroom") {
-		return UpgradeCost(10, 2);
+		return UpgradeCost(15, 10);
 	}
 	else if (type == "Grand Mother") {
-		return UpgradeCost(30, 50);
+		return UpgradeCost(50, 50);
 	}
 	else {
 		return UpgradeCost();
