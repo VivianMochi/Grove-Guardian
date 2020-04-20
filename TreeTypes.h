@@ -42,16 +42,16 @@ UpgradeCost getUpgradeCost(std::string type) {
 		return UpgradeCost(2, 0);
 	}
 	else if (type == "Tree") {
-		return UpgradeCost(30, 10);
+		return UpgradeCost(20, 10);
 	}
 	else if (type == "Willow") {
-		return UpgradeCost(30, 10);
+		return UpgradeCost(30, 15);
 	}
 	else if (type == "Cactus") {
-		return UpgradeCost(30, 10);
+		return UpgradeCost(15, 20);
 	}
 	else if (type == "Soybean") {
-		return UpgradeCost(10, 2);
+		return UpgradeCost(10, 30);
 	}
 	else if (type == "Waterlily") {
 		return UpgradeCost(10, 2);

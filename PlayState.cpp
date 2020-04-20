@@ -35,8 +35,7 @@ void PlayState::init() {
 	dayMusic.openFromFile("Resource/Music/Day.ogg");
 	nightMusic.openFromFile("Resource/Music/Night.ogg");
 
-	//buildWorld(75, 75);
-	buildWorld(20, 20);
+	buildWorld(75, 75);
 
 	player.setState(this);
 	player.setPosition(worldSize.x / 2 * 10, worldSize.y / 2 * 10 + 10);
@@ -114,15 +113,15 @@ void PlayState::update(sf::Time elapsed) {
 		}
 	}
 	time += elapsed.asSeconds();
-	// Debug
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Z)) {
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Z) && getTimeOfDay(hour) != "Night") {
 		time += elapsed.asSeconds() * 10;
 	}
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::X)) {
+	//Debug
+	/*if (sf::Keyboard::isKeyPressed(sf::Keyboard::X)) {
 		nutrients += 500;
 		water += 500;
 		light += 500;
-	}
+	}*/
 	if (time >= secondsPerDay) {
 		time = 0;
 		for (std::shared_ptr<GridObject> &object : objectGrid) {
@@ -222,7 +221,7 @@ void PlayState::update(sf::Time elapsed) {
 	}
 	if (!gameOver && motherPresent == false) {
 		gameOver = true;
-		gameText.setText("The mother tree has\nfallen on Day " + std::to_string(day));
+		gameText.setText("The mother tree has\nfallen on Day " + std::to_string(day) + ".");
 	}
 	else if (!gameOver && towersCharged == true) {
 		gameOver = true;

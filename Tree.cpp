@@ -36,6 +36,18 @@ void Tree::update(sf::Time elapsed) {
 		}
 	}
 
+	if (getType() == "Willow") {
+		std::shared_ptr<GridTile> tileBelow = state->getGridTile(gridPosition.x, gridPosition.y);
+		if (tileBelow) {
+			if (tileBelow->getType() == "Water" && tileBelow->quantity > 0) {
+				range = 10;
+			}
+			else {
+				range = 5;
+			}
+		}
+	}
+
 	for (Leaf &leaf : leaves) {
 		leaf.update(elapsed);
 	}
@@ -69,7 +81,7 @@ void Tree::onHour(int hour) {
 	if (tileBelow) {
 		if (tileBelow->getType() == "Water" && tileBelow->quantity > 0) {
 			if (state->water <= state->maxWater - 1) {
-				state->gainWater(1, getPosition());
+				state->gainWater(getType() == "Waterlily" ? 4 : 1, getPosition());
 				tileBelow->quantity -= 1;
 			}
 		}
@@ -79,6 +91,10 @@ void Tree::onHour(int hour) {
 				tileBelow->quantity -= 1;
 			}
 		}
+	}
+
+	if (getType() == "Soybean") {
+		state->gainNutrients(1, getPosition());
 	}
 
 	if (getType() != "Glowshroom") {
@@ -94,6 +110,8 @@ void Tree::onHour(int hour) {
 			state->gainLight(3, getPosition());
 		}
 	}
+
+	
 }
 
 void Tree::onDay() {
@@ -123,13 +141,76 @@ void Tree::setType(std::string type) {
 		range = 3;
 		attackRate = 0.25;
 	}
-	else if (type == "Sapling") {
+	else if (type == "Shrub") {
 		buildTreeFromImage("Shrub");
-		maxLight = 2;
-		maxWater = 1;
+		maxLight = 5;
+		maxWater = 0;
+		maxNutrients = 0;
+		lightIncome = 0;
+		range = 0;
+		attackRate = 0;
+	}
+	else if (type == "Weeds") {
+		buildTreeFromImage("Weeds");
+		maxLight = 0;
+		maxWater = 0;
 		maxNutrients = 2;
+		lightIncome = 0;
+		range = 0;
+		attackRate = 0;
+	}
+	else if (type == "Tree") {
+		buildTreeFromImage("Tree");
+		maxLight = 6;
+		maxWater = 3;
+		maxNutrients = 4;
+		lightIncome = 2;
+		range = 4;
+		attackRate = 0.25;
+	}
+	else if (type == "Willow") {
+		buildTreeFromImage("Willow");
+		maxLight = 5;
+		maxWater = 4;
+		maxNutrients = 3;
 		lightIncome = 1;
-		range = 3;
+		range = 5;
+		attackRate = 0.5;
+	}
+	else if (type == "Cactus") {
+		buildTreeFromImage("Cactus");
+		maxLight = 0;
+		maxWater = 8;
+		maxNutrients = 0;
+		lightIncome = 0;
+		range = 6;
+		attackRate = 1;
+	}
+	else if (type == "Soybean") {
+		buildTreeFromImage("Soybean");
+		maxLight = 0;
+		maxWater = 0;
+		maxNutrients = 2;
+		lightIncome = 0;
+		range = 4;
+		attackRate = 0.25;
+	}
+	else if (type == "Waterlily") {
+		buildTreeFromImage("Waterlily");
+		maxLight = 1;
+		maxWater = 4;
+		maxNutrients = 1;
+		lightIncome = 1;
+		range = 0;
+		attackRate = 0;
+	}
+	else if (type == "Glowshroom") {
+		buildTreeFromImage("Glowshroom");
+		maxLight = 0;
+		maxWater = 0;
+		maxNutrients = 5;
+		lightIncome = 3;
+		range = 4;
 		attackRate = 0.25;
 	}
 	else if (type == "Mother Tree") {
