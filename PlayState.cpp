@@ -83,9 +83,9 @@ void PlayState::gotEvent(sf::Event event) {
 			if (!map.isCursorOnMap() && selectedObject) {
 				sf::IntRect closeButton(240 - 14, 135 - 110, 12, 12);
 				sf::IntRect trashButton(240 - 14, 135 - 56, 12, 12);
-				sf::IntRect upgrade1Button(240 - 14, 135 - 42, 12, 12);
-				sf::IntRect upgrade2Button(240 - 14, 135 - 28, 12, 12);
-				sf::IntRect upgrade3Button(240 - 14, 135 - 14, 12, 12);
+				sf::IntRect upgrade1Button(240 - 14, 135 - 42, 12, 13);
+				sf::IntRect upgrade2Button(240 - 14, 135 - 28 - 1, 12, 14);
+				sf::IntRect upgrade3Button(240 - 14, 135 - 14 - 1, 12, 13);
 				if (closeButton.contains(getCursorLocation().x, getCursorLocation().y)) {
 					selectedObject = std::shared_ptr<GridObject>();
 					ignoreThisClick = true;
@@ -159,8 +159,20 @@ void PlayState::gotEvent(sf::Event event) {
 		else if (event.key.code == sf::Keyboard::E) {
 			map.toggleMap();
 		}
-		else if (event.key.code == sf::Keyboard::P) {
+		else if (godMode && event.key.code == sf::Keyboard::O) {
+			revealMap(sf::Vector2i(), 200);
+		}
+		else if (godMode && event.key.code == sf::Keyboard::P) {
 			game->changeState(new PlayState());
+		}
+		else if (godMode && (event.key.code == sf::Keyboard::B || event.key.code == sf::Keyboard::N || event.key.code == sf::Keyboard::M)) {
+			std::shared_ptr<Spirit> spirit = std::make_shared<Spirit>();
+			spirit->setState(this);
+			spirit->setPosition(getCursorLocation() + cameraPosition);
+			spirit->init();
+			spirit->setPosition(getCursorLocation() + cameraPosition);
+			spirit->setType(event.key.code == sf::Keyboard::B ? "Normal" : event.key.code == sf::Keyboard::N ? "Tall" : "Double");
+			spirits.push_back(spirit);
 		}
 	}
 }
@@ -261,10 +273,12 @@ void PlayState::update(sf::Time elapsed) {
 			sf::Vector2i gridLocation = getCursorGridLocation();
 			if (!getGridObject(gridLocation.x, gridLocation.y) && getGridTile(gridLocation.x, gridLocation.y)) {
 				if (getDistanceToMother(gridLocation.x, gridLocation.y) < 1000000) {
-					if (spendNutrients(1, sf::Vector2f(gridLocation * 10))) {
-						bool inOcean = getGridTile(gridLocation.x, gridLocation.y)->getType() == "Ocean";
-						setGridObject(gridLocation.x, gridLocation.y, std::make_shared<Tree>(inOcean ? "Seaweed" : "Root"));
-						revealMap(gridLocation, 8);
+					bool inOcean = getGridTile(gridLocation.x, gridLocation.y)->getType() == "Ocean";
+					if (!inOcean || isResearched("Seaweed")) {
+						if (spendNutrients(1, sf::Vector2f(gridLocation * 10))) {
+							setGridObject(gridLocation.x, gridLocation.y, std::make_shared<Tree>(inOcean ? "Seaweed" : "Root"));
+							revealMap(gridLocation, 8);
+						}
 					}
 				}
 			}
@@ -273,7 +287,7 @@ void PlayState::update(sf::Time elapsed) {
 			if (sf::Mouse::isButtonPressed(sf::Mouse::Right)) {
 				sf::Vector2i gridLocation = getCursorGridLocation();
 				std::shared_ptr<GridObject> object = getGridObject(gridLocation.x, gridLocation.y);
-				if (isOwnedTree(object) && std::dynamic_pointer_cast<Tree>(object)->getType() == "Root") {
+				if (isOwnedTree(object) && (std::dynamic_pointer_cast<Tree>(object)->getType() == "Root" || std::dynamic_pointer_cast<Tree>(object)->getType() == "Seaweed")) {
 					object->kill();
 				}
 			}
@@ -629,6 +643,7 @@ void PlayState::buildWorld(int worldWidth, int worldHeight) {
 	createRuin("Large", "Light");
 	createRuin("Large", "Water");
 	createRuin("Large", "Nutrients");
+	createRuin("Small", "Seaweed");
 	createRuin("Small", "Willow");
 	createRuin("Small", "Cactus");
 	createRuin("Small", "Soybean");

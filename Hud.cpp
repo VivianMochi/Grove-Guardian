@@ -186,7 +186,12 @@ void Hud::populateInfo(std::shared_ptr<GridObject> object) {
 			infoTitle.setText("Garden Shrine");
 			infoDescription.setText("A shrine that\nteaches how to\ngrow the\n" + ruinObject->getSubType() + "\nplant when given\nenough light.");
 		}
-		upgrade3Text.setText(std::to_string(ruinObject->charge) + "/" + std::to_string(ruinObject->maxCharge));
+		if (ruinObject->charge < ruinObject->maxCharge) {
+			upgrade3Text.setText(std::to_string(ruinObject->charge) + "/" + std::to_string(ruinObject->maxCharge));
+		}
+		else {
+			upgrade3Text.setText("Complete!");
+		}
 		stats.clear();
 	}
 	else {
@@ -288,6 +293,26 @@ void Hud::draw(sf::RenderTarget &target, sf::RenderStates states) const {
 		target.draw(text);
 	}
 
+	if (std::dynamic_pointer_cast<Ruin>(state->selectedObject)) {
+		std::shared_ptr<Ruin> ruinObject = std::dynamic_pointer_cast<Ruin>(state->selectedObject);
+		sf::RectangleShape progressBar;
+		progressBar.setSize(sf::Vector2f(ruinObject->charge * 1.0f / ruinObject->maxCharge * 102, 12));
+		progressBar.setPosition(infoPane.getPosition() + sf::Vector2f(2, 98));
+		progressBar.setFillColor(sf::Color(122, 122, 122));
+		target.draw(progressBar);
+
+		sf::RectangleShape corner;
+		corner.setSize(sf::Vector2f(1, 1));
+		corner.setFillColor(sf::Color(64, 64, 64));
+		corner.setPosition(infoPane.getPosition() + sf::Vector2f(2, 98));
+		target.draw(corner);
+		corner.setPosition(infoPane.getPosition() + sf::Vector2f(2, 109));
+		target.draw(corner);
+		corner.setPosition(infoPane.getPosition() + sf::Vector2f(103, 98));
+		target.draw(corner);
+		corner.setPosition(infoPane.getPosition() + sf::Vector2f(103, 109));
+		target.draw(corner);
+	}
 	target.draw(upgrade1Text);
 	target.draw(upgrade2Text);
 	target.draw(upgrade3Text);
@@ -308,9 +333,9 @@ void Hud::draw(sf::RenderTarget &target, sf::RenderStates states) const {
 	}
 
 	if (state->isOwnedTree(state->selectedObject)) {
-		sf::IntRect upgrade1Button(240 - 14, 135 - 42, 12, 12);
-		sf::IntRect upgrade2Button(240 - 14, 135 - 28, 12, 12);
-		sf::IntRect upgrade3Button(240 - 14, 135 - 14, 12, 12);
+		sf::IntRect upgrade1Button(240 - 14, 135 - 42, 12, 13);
+		sf::IntRect upgrade2Button(240 - 14, 135 - 28 - 1, 12, 14);
+		sf::IntRect upgrade3Button(240 - 14, 135 - 14 - 1, 12, 13);
 		if (upgrade1Button.contains(state->getCursorLocation().x, state->getCursorLocation().y)) {
 			if (upgrade1Text.getText() != "" && upgrade1Text.getText() != "???") {
 				target.draw(costPane);

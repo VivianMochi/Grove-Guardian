@@ -14,6 +14,7 @@ public:
 	bool dead = false;
 
 	std::string type = "Normal";
+	void setType(std::string type);
 
 private:
 	// Inherited via Drawable
@@ -21,6 +22,8 @@ private:
 
 	void updateVelocity(sf::Time elapsed);
 	void updateAnimation(sf::Time elapsed);
+
+	void makeParticle(bool useVelocity = true);
 
 	// Internal data
 	std::shared_ptr<GridObject> target;

@@ -13,6 +13,9 @@ std::vector<std::string> getTreeUpgradeOptions(std::string type) {
 	else if (type == "Weeds") {
 		return { "Waterlily", "Glowshroom" };
 	}
+	else if (type == "Seaweed") {
+		return { "Kelp", "Seagrass", "Coral"};
+	}
 	else if (type == "Mother Tree") {
 		return { "Grand Mother" };
 	}
@@ -53,7 +56,7 @@ UpgradeCost getTreeUpgradeCost(std::string type) {
 		return UpgradeCost(50, 50);
 	}
 	else {
-		return UpgradeCost();
+		return UpgradeCost(99, 99);
 	}
 }
 
@@ -87,6 +90,9 @@ std::string getTreeDescription(std::string type) {
 	}
 	else if (type == "Glowshroom") {
 		return "Makes light at\nNight. Cool!";
+	}
+	else if (type == "Seaweed") {
+		return "50% sea.\n50% weed.";
 	}
 	if (type == "Mother Tree") {
 		return "The grove's heart.\nKeep it alive.";
