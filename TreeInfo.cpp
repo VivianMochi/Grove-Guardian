@@ -1,16 +1,6 @@
-#pragma once
+#include "TreeInfo.h"
 
-#include <vector>
-#include <string>
-
-struct UpgradeCost {
-	UpgradeCost(int light = 0, int nutrients = 0, int water = 0) : light(light), water(water), nutrients(nutrients) {}
-	int light;
-	int water;
-	int nutrients;
-};
-
-std::vector<std::string> getUpgradeOptions(std::string type) {
+std::vector<std::string> getTreeUpgradeOptions(std::string type) {
 	if (type == "Root") {
 		return { "Sapling", "Shrub", "Weeds" };
 	}
@@ -31,7 +21,7 @@ std::vector<std::string> getUpgradeOptions(std::string type) {
 	}
 }
 
-UpgradeCost getUpgradeCost(std::string type) {
+UpgradeCost getTreeUpgradeCost(std::string type) {
 	if (type == "Sapling") {
 		return UpgradeCost(10, 2);
 	}
@@ -67,7 +57,7 @@ UpgradeCost getUpgradeCost(std::string type) {
 	}
 }
 
-std::string getDescription(std::string type) {
+std::string getTreeDescription(std::string type) {
 	if (type == "Root") {
 		return "I am root.\n";
 	}
@@ -106,5 +96,44 @@ std::string getDescription(std::string type) {
 	}
 	else {
 		return "";
+	}
+}
+
+TreeStats getTreeStats(std::string type) {
+	if (type == "Sapling") {
+		return TreeStats{ 2, 1, 2, 1, 3, 0.25 };
+	}
+	else if (type == "Shrub") {
+		return TreeStats{ 5, 0, 0, 0, 0, 0 };
+	}
+	else if (type == "Weeds") {
+		return TreeStats{ 0, 0, 2, 0, 0, 0 };
+	}
+	else if (type == "Tree") {
+		return TreeStats{ 6, 3, 4, 2, 4, 0.25 };
+	}
+	else if (type == "Willow") {
+		return TreeStats{ 5, 4, 3, 1, 5, 0.5 };
+	}
+	else if (type == "Cactus") {
+		return TreeStats{ 0, 8, 0, 0, 6, 1 };
+	}
+	else if (type == "Soybean") {
+		return TreeStats{ 0, 0, 2, 0, 4, 0.25 };
+	}
+	else if (type == "Waterlily") {
+		return TreeStats{ 1, 4, 1, 1, 0, 0 };
+	}
+	else if (type == "Glowshroom") {
+		return TreeStats{ 0, 0, 5, 3, 4, 0.25 };
+	}
+	else if (type == "Mother Tree") {
+		return TreeStats{ 15, 10, 20, 3, 5, 0.5 };
+	}
+	else if (type == "Grand Mother") {
+		return TreeStats{ 50, 50, 50, 5, 10, 1 };
+	}
+	else {
+		return TreeStats();
 	}
 }

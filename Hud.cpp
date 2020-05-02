@@ -1,7 +1,7 @@
 #include "Hud.h"
 
 #include "PlayState.h"
-#include "TreeTypes.h"
+#include "TreeInfo.h"
 #include "Ruin.h"
 
 void Hud::init() {
@@ -13,12 +13,16 @@ void Hud::init() {
 	dayBar.setPosition(dayBarSprite.getPosition() + sf::Vector2f(3, 3));
 
 	dayBarBg.setTexture(state->loadTexture("Resource/Image/DayBar.png"));
-	dayBarBg.setTextureRect(sf::IntRect(0, 20, 124, 10));
+	dayBarBg.setTextureRect(sf::IntRect(0, 40, 124, 10));
 	dayBarBg.setPosition(58, 0);
 
 	sunSprite.setTexture(state->loadTexture("Resource/Image/DayBar.png"));
 	sunSprite.setTextureRect(sf::IntRect(0, 10, 16, 8));
 	sunSprite.setPosition(dayBarSprite.getPosition() + sf::Vector2f(state->hour * 11 - 1, 9));
+
+	fastButton.setTexture(state->loadTexture("Resource/Image/FastButton.png"));
+	fastButton.setTextureRect(sf::IntRect(0, 0, 12, 10));
+	fastButton.setPosition(48, 0);
 
 	resourcesHud.setTexture(state->loadTexture("Resource/Image/ResourcesHud.png"));
 
@@ -64,14 +68,30 @@ void Hud::init() {
 void Hud::update(sf::Time elapsed) {
 	dayBar.setSize(sf::Vector2f(11 * state->hour + std::floor(8 * state->time / state->secondsPerDay), 4));
 
+	if (state->weather == PlayState::sunny) {
+		dayBarSprite.setTextureRect(sf::IntRect(0, 0, 124, 10));
+	}
+	else if (state->weather == PlayState::rainy) {
+		dayBarSprite.setTextureRect(sf::IntRect(0, 20, 124, 10));
+	}
 	if (state->getTimeOfDay(state->hour) == "Night") {
 		sunSprite.setTextureRect(sf::IntRect(32, 10, 16, 8));
 	}
 	else if (state->getTimeOfDay(state->hour) == "Transition") {
-		sunSprite.setTextureRect(sf::IntRect(16, 10, 16, 8));
+		if (state->weather == PlayState::sunny) {
+			sunSprite.setTextureRect(sf::IntRect(16, 10, 16, 8));
+		}
+		else if (state->weather == PlayState::rainy) {
+			sunSprite.setTextureRect(sf::IntRect(48, 10, 16, 8));
+		}
 	}
 	else {
-		sunSprite.setTextureRect(sf::IntRect(0, 10, 16, 8));
+		if (state->weather == PlayState::sunny) {
+			sunSprite.setTextureRect(sf::IntRect(0, 10, 16, 8));
+		}
+		else if (state->weather == PlayState::rainy) {
+			sunSprite.setTextureRect(sf::IntRect(48, 10, 16, 8));
+		}
 	}
 	sf::Vector2f sunSpriteDesiredLocation = dayBarSprite.getPosition() + sf::Vector2f(state->hour * 11 - 1, 9);
 	if (sunSpriteDesiredLocation.x < dayBarSprite.getPosition().x + 1) {
@@ -81,6 +101,8 @@ void Hud::update(sf::Time elapsed) {
 		sunSpriteDesiredLocation.x = dayBarSprite.getPosition().x + 107;
 	}
 	sunSprite.move((sunSpriteDesiredLocation - sunSprite.getPosition()) * elapsed.asSeconds() * 4.0f);
+
+	fastButton.setTextureRect(sf::IntRect(state->timeSpeed == 1 ? 0 : 12, 0, 12, 10));
 
 	dayText.setText("Day " + std::to_string(state->day));
 	lightText.setText(std::to_string(int(state->light)) + "/" + std::to_string(state->maxLight));
@@ -123,27 +145,27 @@ void Hud::populateInfo(std::shared_ptr<GridObject> object) {
 		infoPane.setTexture(state->loadTexture("Resource/Image/InfoPane.png"));
 		std::shared_ptr<Tree> treeObject = std::dynamic_pointer_cast<Tree>(object);
 		infoTitle.setText(treeObject->getType());
-		infoDescription.setText(getDescription(treeObject->getType()));
+		infoDescription.setText(getTreeDescription(treeObject->getType()));
 		loadStats(treeObject);
-		if (getUpgradeOptions(treeObject->getType()).size() >= 1) {
-			if (state->isResearched(getUpgradeOptions(treeObject->getType())[0])) {
-				upgrade1Text.setText(getUpgradeOptions(treeObject->getType())[0]);
+		if (getTreeUpgradeOptions(treeObject->getType()).size() >= 1) {
+			if (state->isResearched(getTreeUpgradeOptions(treeObject->getType())[0])) {
+				upgrade1Text.setText(getTreeUpgradeOptions(treeObject->getType())[0]);
 			}
 			else {
 				upgrade1Text.setText("???");
 			}
 		}
-		if (getUpgradeOptions(treeObject->getType()).size() >= 2) {
-			if (state->isResearched(getUpgradeOptions(treeObject->getType())[1])) {
-				upgrade2Text.setText(getUpgradeOptions(treeObject->getType())[1]);
+		if (getTreeUpgradeOptions(treeObject->getType()).size() >= 2) {
+			if (state->isResearched(getTreeUpgradeOptions(treeObject->getType())[1])) {
+				upgrade2Text.setText(getTreeUpgradeOptions(treeObject->getType())[1]);
 			}
 			else {
 				upgrade2Text.setText("???");
 			}
 		}
-		if (getUpgradeOptions(treeObject->getType()).size() >= 3) {
-			if (state->isResearched(getUpgradeOptions(treeObject->getType())[2])) {
-				upgrade3Text.setText(getUpgradeOptions(treeObject->getType())[2]);
+		if (getTreeUpgradeOptions(treeObject->getType()).size() >= 3) {
+			if (state->isResearched(getTreeUpgradeOptions(treeObject->getType())[2])) {
+				upgrade3Text.setText(getTreeUpgradeOptions(treeObject->getType())[2]);
 			}
 			else {
 				upgrade3Text.setText("???");
@@ -182,9 +204,20 @@ bool Hud::isCursorOnHud() const {
 	else if (cursorLocation.x < 50 && cursorLocation.y < 48) {
 		return true;
 	}
+	else if (fastButton.getGlobalBounds().contains(cursorLocation)) {
+		return true;
+	}
+	else if (dayBarSprite.getGlobalBounds().contains(cursorLocation)) {
+		return true;
+	}
 	else {
 		return false;
 	}
+}
+
+bool Hud::isCursorOnFastButton() {
+	sf::FloatRect fastButton(50, 2, 8, 6);
+	return fastButton.contains(state->getCursorLocation());
 }
 
 void Hud::chooseUpgrade(int selection) {
@@ -202,9 +235,9 @@ void Hud::chooseUpgrade(int selection) {
 
 		if (newType != "" && newType != "???") {
 			if (state->selectedObject && std::dynamic_pointer_cast<Tree>(state->selectedObject)) {
-				if (state->light >= getUpgradeCost(newType).light && state->nutrients >= getUpgradeCost(newType).nutrients) {
-					state->spendLight(getUpgradeCost(newType).light, state->selectedObject->getPosition());
-					state->spendNutrients(getUpgradeCost(newType).nutrients, state->selectedObject->getPosition());
+				if (state->light >= getTreeUpgradeCost(newType).light && state->nutrients >= getTreeUpgradeCost(newType).nutrients) {
+					state->spendLight(getTreeUpgradeCost(newType).light, state->selectedObject->getPosition());
+					state->spendNutrients(getTreeUpgradeCost(newType).nutrients, state->selectedObject->getPosition());
 					std::dynamic_pointer_cast<Tree>(state->selectedObject)->setType(newType);
 					populateInfo(state->selectedObject);
 				}
@@ -240,6 +273,8 @@ void Hud::draw(sf::RenderTarget &target, sf::RenderStates states) const {
 	target.draw(lightText);
 	target.draw(waterText);
 	target.draw(nutrientsText);
+
+	target.draw(fastButton);
 
 	target.draw(dayBarBg);
 	target.draw(dayBar);
@@ -279,19 +314,19 @@ void Hud::draw(sf::RenderTarget &target, sf::RenderStates states) const {
 		if (upgrade1Button.contains(state->getCursorLocation().x, state->getCursorLocation().y)) {
 			if (upgrade1Text.getText() != "" && upgrade1Text.getText() != "???") {
 				target.draw(costPane);
-				renderCost(target, getUpgradeCost(upgrade1Text.getText()).light, getUpgradeCost(upgrade1Text.getText()).nutrients);
+				renderCost(target, getTreeUpgradeCost(upgrade1Text.getText()).light, getTreeUpgradeCost(upgrade1Text.getText()).nutrients);
 			}
 		}
 		else if (upgrade2Button.contains(state->getCursorLocation().x, state->getCursorLocation().y)) {
 			if (upgrade2Text.getText() != "" && upgrade2Text.getText() != "???") {
 				target.draw(costPane);
-				renderCost(target, getUpgradeCost(upgrade2Text.getText()).light, getUpgradeCost(upgrade2Text.getText()).nutrients);
+				renderCost(target, getTreeUpgradeCost(upgrade2Text.getText()).light, getTreeUpgradeCost(upgrade2Text.getText()).nutrients);
 			}
 		}
 		else if (upgrade3Button.contains(state->getCursorLocation().x, state->getCursorLocation().y)) {
 			if (upgrade3Text.getText() != "" && upgrade3Text.getText() != "???") {
 				target.draw(costPane);
-				renderCost(target, getUpgradeCost(upgrade3Text.getText()).light, getUpgradeCost(upgrade3Text.getText()).nutrients);
+				renderCost(target, getTreeUpgradeCost(upgrade3Text.getText()).light, getTreeUpgradeCost(upgrade3Text.getText()).nutrients);
 			}
 		}
 	}
@@ -307,11 +342,11 @@ void Hud::loadStats(std::shared_ptr<Tree> tree) {
 	statText.setTexture(state->loadTexture("Resource/Image/Font.png"));
 	statText.setColor(sf::Color::White);
 
-	statText.setText(std::to_string((int)tree->lightIncome));
+	statText.setText(std::to_string((int)tree->stats.lightIncome));
 	stats.push_back(statText);
-	statText.setText(std::to_string((int)tree->range));
+	statText.setText(std::to_string((int)tree->stats.range));
 	stats.push_back(statText);
-	std::string attackRate = std::to_string(tree->attackRate);
+	std::string attackRate = std::to_string(tree->stats.attackRate);
 	if (attackRate.find('.')) {
 		attackRate = attackRate.substr(0, attackRate.find('.') + 3);
 	}
@@ -319,13 +354,13 @@ void Hud::loadStats(std::shared_ptr<Tree> tree) {
 	stats.push_back(statText);
 
 	statText.setColor(state->getResourceColor("Light"));
-	statText.setText(std::to_string((int)tree->maxLight));
+	statText.setText(std::to_string((int)tree->stats.maxLight));
 	stats.push_back(statText);
 	statText.setColor(state->getResourceColor("Water"));
-	statText.setText(std::to_string((int)tree->maxWater));
+	statText.setText(std::to_string((int)tree->stats.maxWater));
 	stats.push_back(statText);
 	statText.setColor(state->getResourceColor("Nutrients"));
-	statText.setText(std::to_string((int)tree->maxNutrients));
+	statText.setText(std::to_string((int)tree->stats.maxNutrients));
 	stats.push_back(statText);
 }
 

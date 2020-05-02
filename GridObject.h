@@ -13,6 +13,8 @@ public:
 
 	virtual void kill();
 
+	virtual sf::Color getMapColor();
+
 	sf::Vector2i gridPosition;
 	bool playerOwned = false;
 

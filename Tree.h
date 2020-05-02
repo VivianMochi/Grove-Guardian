@@ -3,6 +3,7 @@
 #include "GridObject.h"
 #include "Leaf.h"
 #include "Spirit.h"
+#include "TreeInfo.h"
 #include <SFML/Graphics.hpp>
 
 class Tree : public GridObject {
@@ -18,16 +19,13 @@ public:
 
 	void kill() override;
 
+	sf::Color getMapColor() override;
+
 	void setType(std::string type);
 	std::string getType();
 
 	// Stats
-	int maxLight = 0;
-	int maxWater = 0;
-	int maxNutrients = 0;
-	int lightIncome = 0;
-	float range = 0;
-	float attackRate = 0;
+	TreeStats stats;
 	sf::Color color;
 
 	int distanceToMother = 0;
@@ -37,17 +35,23 @@ private:
 	// Inherited via Drawable
 	virtual void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
 
-	void buildTreeFromImage(std::string filename);
+	void buildTreeFromImage(std::string filename, int numberOfFrames = 1);
 	void generateLeaves(std::string filename);
 	void createLeaf(float x, float y);
 	void createLeafCluster(float x, float y);
+
+	void updateAnimation(sf::Time elapsed);
 
 	// Internal data
 	std::string type = "Root";
 	std::vector<Leaf> leaves;
 	std::shared_ptr<Spirit> target;
 	sf::Vector2f attackOrigin;
-	float attackCooldown;
+	float attackCooldown = 0;
+	int totalFrames = 1;
+	int frame = 0;
+	float frameTime = 0;
+	float framePeriod;
 
 	// Resources
 	sf::Sprite sprite;

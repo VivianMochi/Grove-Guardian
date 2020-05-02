@@ -13,6 +13,7 @@ public:
 
 	void populateInfo(std::shared_ptr<GridObject> object);
 	bool isCursorOnHud() const;
+	bool isCursorOnFastButton();
 	void chooseUpgrade(int selection);
 
 private:
@@ -34,6 +35,8 @@ private:
 	sf::RectangleShape dayBar;
 	sf::Sprite dayBarBg;
 	sf::Sprite sunSprite;
+
+	sf::Sprite fastButton;
 
 	sf::Sprite infoPane;
 	BitmapText infoTitle;

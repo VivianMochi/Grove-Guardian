@@ -23,3 +23,7 @@ void GridObject::onDay() {
 void GridObject::kill() {
 	dead = true;
 }
+
+sf::Color GridObject::getMapColor() {
+	return sf::Color::White;
+}

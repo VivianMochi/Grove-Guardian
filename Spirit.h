@@ -13,6 +13,8 @@ public:
 
 	bool dead = false;
 
+	std::string type = "Normal";
+
 private:
 	// Inherited via Drawable
 	virtual void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
@@ -25,6 +27,7 @@ private:
 	sf::Vector2f velocity;
 	int frame;
 	float frameTime;
+	float framePeriod;
 
 	// Stats
 	float topSpeed = 15;

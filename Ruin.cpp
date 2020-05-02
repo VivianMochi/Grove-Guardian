@@ -32,6 +32,18 @@ void Ruin::update(sf::Time elapsed) {
 	sprite.setPosition(getPosition() - state->cameraPosition);
 }
 
+sf::Color Ruin::getMapColor() {
+	if (!state->getGridTile(gridPosition.x, gridPosition.y)->visible) {
+		return sf::Color(30, 30, 30);
+	}
+	else if (type == "Large") {
+		return sf::Color(20, 20, 20);
+	}
+	else {
+		return sf::Color(70, 70, 70);
+	}
+}
+
 void Ruin::setType(std::string type, std::string subType) {
 	this->type = type;
 	this->subType = subType;

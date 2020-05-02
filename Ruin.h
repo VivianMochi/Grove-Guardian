@@ -10,6 +10,8 @@ public:
 	void init() override;
 	void update(sf::Time elapsed) override;
 
+	sf::Color getMapColor() override;
+
 	void setType(std::string type, std::string subType);
 	std::string getType();
 	std::string getSubType();
