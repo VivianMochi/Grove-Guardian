@@ -23,3 +23,4 @@ std::vector<std::string> getTreeUpgradeOptions(std::string type);
 UpgradeCost getTreeUpgradeCost(std::string type);
 std::string getTreeDescription(std::string type);
 TreeStats getTreeStats(std::string type);
+int getTreeTier(std::string type);

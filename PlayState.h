@@ -40,12 +40,12 @@ public:
 	sf::Color getResourceColor(std::string resource);
 
 	void calculateMaxResources();
-	void gainLight(float gained, sf::Vector2f position = sf::Vector2f());
-	bool spendLight(float spent, sf::Vector2f position = sf::Vector2f());
-	void gainWater(float gained, sf::Vector2f position = sf::Vector2f());
-	bool spendWater(float spent, sf::Vector2f position = sf::Vector2f());
-	void gainNutrients(float gained, sf::Vector2f position = sf::Vector2f());
-	bool spendNutrients(float spent, sf::Vector2f position = sf::Vector2f());
+	void gainLight(float gained, sf::Vector2f position = sf::Vector2f(-100, -100));
+	bool spendLight(float spent, sf::Vector2f position = sf::Vector2f(-100, -100));
+	void gainWater(float gained, sf::Vector2f position = sf::Vector2f(-100, -100));
+	bool spendWater(float spent, sf::Vector2f position = sf::Vector2f(-100, -100));
+	void gainNutrients(float gained, sf::Vector2f position = sf::Vector2f(-100, -100));
+	bool spendNutrients(float spent, sf::Vector2f position = sf::Vector2f(-100, -100));
 
 	std::shared_ptr<GridTile> getGridTile(int x, int y);
 	void setGridTile(int x, int y, std::string newType);
@@ -112,7 +112,7 @@ public:
 
 private:
 	void buildWorld(int worldWidth, int worldHeight);
-	sf::Vector2i getLandLocation(bool close = true);
+	sf::Vector2i getRandomLocation(bool close = true, bool acceptWater = false);
 	void createRuin(std::string type, std::string subType);
 
 	void spawnSpirits();

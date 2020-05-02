@@ -174,6 +174,11 @@ void PlayState::gotEvent(sf::Event event) {
 			spirit->setType(event.key.code == sf::Keyboard::B ? "Normal" : event.key.code == sf::Keyboard::N ? "Tall" : "Double");
 			spirits.push_back(spirit);
 		}
+		else if (godMode && event.key.code == sf::Keyboard::X) {
+			gainNutrients(500);
+			gainWater(500);
+			gainLight(500);
+		}
 	}
 }
 
@@ -202,11 +207,6 @@ void PlayState::update(sf::Time elapsed) {
 		totalTime += elapsed.asSeconds() * timeSpeed;
 	}
 	
-	if (godMode && sf::Keyboard::isKeyPressed(sf::Keyboard::X)) {
-		nutrients += 500;
-		water += 500;
-		light += 500;
-	}
 	if (time >= secondsPerDay) {
 		time = 0;
 		for (std::shared_ptr<GridObject> &object : objectGrid) {
@@ -401,15 +401,6 @@ void PlayState::calculateMaxResources() {
 			maxNutrients += std::dynamic_pointer_cast<Tree>(object)->stats.maxNutrients;
 		}
 	}
-	if (light > maxLight) {
-		light = maxLight;
-	}
-	if (water > maxWater) {
-		water = maxWater;
-	}
-	if (nutrients > maxNutrients) {
-		nutrients = maxNutrients;
-	}
 }
 
 void PlayState::gainLight(float gained, sf::Vector2f position) {
@@ -417,16 +408,20 @@ void PlayState::gainLight(float gained, sf::Vector2f position) {
 	if (light > maxLight) {
 		light = maxLight;
 	}
-	for (int i = 0; i < std::floor(gained); i++) {
-		createParticle(position + sf::Vector2f(-4, -4 * i), sf::Vector2f(0, -20), getResourceColor("Light"), Particle::plus, true);
+	if (position.x >= 0) {
+		for (int i = 0; i < std::floor(gained); i++) {
+			createParticle(position + sf::Vector2f(-4, -4 * i), sf::Vector2f(0, -20), getResourceColor("Light"), Particle::plus, true);
+		}
 	}
 }
 
 bool PlayState::spendLight(float spent, sf::Vector2f position) {
 	if (light >= spent) {
 		light -= spent;
-		for (int i = 0; i < std::floor(spent); i++) {
-			createParticle(position + sf::Vector2f(-4, -4 * i), sf::Vector2f(0, -20), getResourceColor("Light"), Particle::minus, true);
+		if (position.x >= 0) {
+			for (int i = 0; i < std::floor(spent); i++) {
+				createParticle(position + sf::Vector2f(-4, -4 * i), sf::Vector2f(0, -20), getResourceColor("Light"), Particle::minus, true);
+			}
 		}
 		return true;
 	}
@@ -437,19 +432,23 @@ bool PlayState::spendLight(float spent, sf::Vector2f position) {
 
 void PlayState::gainWater(float gained, sf::Vector2f position) {
 	water += gained;
-	if (water > maxWater) {
+	if (water > maxWater && weather != rainy) {
 		water = maxWater;
 	}
-	for (int i = 0; i < std::floor(gained); i++) {
-		createParticle(position + sf::Vector2f(0, -4 * i), sf::Vector2f(0, -20), getResourceColor("Water"), Particle::plus, true);
+	if (position.x >= 0) {
+		for (int i = 0; i < std::floor(gained); i++) {
+			createParticle(position + sf::Vector2f(0, -4 * i), sf::Vector2f(0, -20), getResourceColor("Water"), Particle::plus, true);
+		}
 	}
 }
 
 bool PlayState::spendWater(float spent, sf::Vector2f position) {
 	if (water >= spent) {
 		water -= spent;
-		for (int i = 0; i < std::floor(spent); i++) {
-			createParticle(position + sf::Vector2f(0, -4 * i), sf::Vector2f(0, -20), getResourceColor("Water"), Particle::minus, true);
+		if (position.x >= 0) {
+			for (int i = 0; i < std::floor(spent); i++) {
+				createParticle(position + sf::Vector2f(0, -4 * i), sf::Vector2f(0, -20), getResourceColor("Water"), Particle::minus, true);
+			}
 		}
 		return true;
 	}
@@ -463,16 +462,20 @@ void PlayState::gainNutrients(float gained, sf::Vector2f position) {
 	if (nutrients > maxNutrients) {
 		nutrients = maxNutrients;
 	}
-	for (int i = 0; i < std::floor(gained); i++) {
-		createParticle(position + sf::Vector2f(4, -4 * i), sf::Vector2f(0, -20), getResourceColor("Nutrients"), Particle::plus, true);
+	if (position.x >= 0) {
+		for (int i = 0; i < std::floor(gained); i++) {
+			createParticle(position + sf::Vector2f(4, -4 * i), sf::Vector2f(0, -20), getResourceColor("Nutrients"), Particle::plus, true);
+		}
 	}
 }
 
 bool PlayState::spendNutrients(float spent, sf::Vector2f position) {
 	if (nutrients >= spent) {
 		nutrients -= spent;
-		for (int i = 0; i < std::floor(spent); i++) {
-			createParticle(position + sf::Vector2f(4, -4 * i), sf::Vector2f(0, -20), getResourceColor("Nutrients"), Particle::minus, true);
+		if (position.x >= 0) {
+			for (int i = 0; i < std::floor(spent); i++) {
+				createParticle(position + sf::Vector2f(4, -4 * i), sf::Vector2f(0, -20), getResourceColor("Nutrients"), Particle::minus, true);
+			}
 		}
 		return true;
 	}
@@ -609,7 +612,7 @@ void PlayState::buildWorld(int worldWidth, int worldHeight) {
 
 	// Populate shore
 	for (int i = 0; i < 20; i++) {
-		sf::Vector2i location = getLandLocation(false);
+		sf::Vector2i location = getRandomLocation(false);
 		setGridTile(location.x, location.y, "Ocean");
 	}
 
@@ -649,6 +652,9 @@ void PlayState::buildWorld(int worldWidth, int worldHeight) {
 	createRuin("Small", "Soybean");
 	createRuin("Small", "Waterlily");
 	createRuin("Small", "Glowshroom");
+	createRuin("Small", "Kelp");
+	createRuin("Small", "Seagrass");
+	createRuin("Small", "Coral");
 	createRuin("Small", "Grand Mother");
 
 	// Add shoreline proper
@@ -664,17 +670,17 @@ void PlayState::buildWorld(int worldWidth, int worldHeight) {
 	revealMap(worldSize / 2, 10);
 }
 
-sf::Vector2i PlayState::getLandLocation(bool close) {
+sf::Vector2i PlayState::getRandomLocation(bool close, bool acceptWater) {
 	int x = worldSize.x / 2;
 	int y = worldSize.y / 2;
 	if (close) {
-		while (getGridObject(x, y) || (getGridTile(x, y) && getGridTile(x, y)->getType() == "Ocean")) {
+		while (getGridObject(x, y) || (!acceptWater && (getGridTile(x, y) && getGridTile(x, y)->getType() == "Ocean"))) {
 			x = worldSize.x / 4 + std::rand() % (worldSize.x / 2);
 			y = worldSize.y / 4 + std::rand() % (worldSize.y / 2);
 		}
 	}
 	else {
-		while (getGridObject(x, y) || (getGridTile(x, y) && getGridTile(x, y)->getType() == "Ocean")) {
+		while (getGridObject(x, y) || (!acceptWater && (getGridTile(x, y) && getGridTile(x, y)->getType() == "Ocean"))) {
 			if (std::rand() % 2 == 0) {
 				if (std::rand() % 2 == 0) {
 					x = std::rand() % (worldSize.x / 4);
@@ -701,7 +707,7 @@ sf::Vector2i PlayState::getLandLocation(bool close) {
 }
 
 void PlayState::createRuin(std::string type, std::string subType) {
-	sf::Vector2i location = getLandLocation(type == "Small");
+	sf::Vector2i location = getRandomLocation(type == "Small" && getTreeTier(subType) == 2, type == "Small" && getTreeTier(subType) == 3);
 	setGridObject(location.x, location.y, std::make_shared<Ruin>(type, subType));
 }
 

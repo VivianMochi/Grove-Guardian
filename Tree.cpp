@@ -86,8 +86,8 @@ void Tree::onHalfSecond() {
 void Tree::onHour(int hour) {
 	std::shared_ptr<GridTile> tileBelow = state->getGridTile(gridPosition.x, gridPosition.y);
 	if (tileBelow) {
-		if (tileBelow->getType() == "Water" && tileBelow->quantity > 0) {
-			if (state->water <= state->maxWater - 1) {
+		if (tileBelow->getType() == "Water" && tileBelow->quantity > 0 && state->getTimeOfDay(hour) != "Night") {
+			if (state->water <= state->maxWater - 1 || state->weather == state->rainy) {
 				state->gainWater(getType() == "Waterlily" ? 4 : 1, getPosition());
 				tileBelow->quantity -= 1;
 			}

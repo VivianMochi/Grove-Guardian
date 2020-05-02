@@ -143,3 +143,25 @@ TreeStats getTreeStats(std::string type) {
 		return TreeStats();
 	}
 }
+
+int getTreeTier(std::string type) {
+	if (type == "Root") {
+		return 0;
+	}
+	std::vector<std::string> tier1 = getTreeUpgradeOptions("Root");
+	std::vector<std::string> tier2;
+	for (std::string tree : tier1) {
+		if (type == tree) {
+			return 1;
+		}
+		std::vector<std::string> options = getTreeUpgradeOptions(tree);
+		tier2.insert(tier2.end(), options.begin(), options.end());
+	}
+	tier2.push_back("Seaweed");
+	for (std::string tree : tier2) {
+		if (type == tree) {
+			return 2;
+		}
+	}
+	return 3;
+}
