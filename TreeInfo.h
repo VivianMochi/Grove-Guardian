@@ -26,6 +26,14 @@ struct TreeStats {
 	sf::Color color;
 };
 
+struct MetaObject {
+	std::string description;
+	TreeStats stats;
+	UpgradeCost cost;
+	std::vector<std::string> upgrades;
+};
+
+MetaObject getTreeMetaObject(std::string type);
 std::vector<std::string> getTreeUpgradeOptions(std::string type);
 UpgradeCost getTreeUpgradeCost(std::string type);
 std::string getTreeDescription(std::string type);

@@ -75,7 +75,7 @@ public:
 
 	// Game Stats
 	float secondsPerDay = 10;
-	bool godMode = true;
+	bool godMode = false;
 
 	// Game data
 	sf::Vector2i worldSize;
@@ -112,6 +112,8 @@ public:
 
 	bool gameOver = false;
 	bool gameWon = false;
+
+	bool paused = false;
 
 private:
 	void buildWorld(int worldWidth, int worldHeight);

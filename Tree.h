@@ -35,7 +35,7 @@ private:
 	// Inherited via Drawable
 	virtual void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
 
-	void buildTreeFromImage(std::string filename, int numberOfFrames = 1);
+	void buildTreeFromImage(std::string filename);
 	void generateLeaves(std::string filename);
 	void createLeaf(float x, float y);
 	void createLeafCluster(float x, float y);

@@ -5,6 +5,8 @@
 #include <algorithm>
 #include <cctype>
 
+#include <iostream>
+
 Tree::Tree(std::string type) : type(type) {
 
 }
@@ -53,6 +55,9 @@ void Tree::update(sf::Time elapsed) {
 			}
 		}
 	}
+	else if (type == "Bamboo") {
+		stats.range = state->light / 10;
+	}
 
 	for (Leaf &leaf : leaves) {
 		leaf.update(elapsed);
@@ -90,6 +95,11 @@ void Tree::onTick() {
 					else {
 						attackOrigin = getPosition();
 					}
+					if (target->dead) {
+						if (type == "Pitcher Plant") {
+							state->gainNutrients(10, getPosition());
+						}
+					}
 				}
 			}
 		}
@@ -97,6 +107,31 @@ void Tree::onTick() {
 	if (stats.buff) {
 		if (type != "Megashroom" || state->getTimeOfDay(state->hour) == "Night") {
 			state->emitBuff(type, getPosition(), stats.range);
+		}
+	}
+
+	// Propagate Creeping Ivy
+	if (type == "Creeping Ivy" && state->getTimeOfDay(state->hour) != "Night") {
+		if (std::rand() % 50 == 0) {
+			int direction = std::rand() % 4;
+			sf::Vector2i newPosition = gridPosition;
+			bool poison = state->isResearched("Poison Ivy") && std::rand() % 20 == 0;
+			if (direction == 0) {
+				newPosition.x -= 1;
+			}
+			else if (direction == 1) {
+				newPosition.x += 1;
+			}
+			else if (direction == 2) {
+				newPosition.y -= 1;
+			}
+			else if (direction == 3) {
+				newPosition.y += 1;
+			}
+			if (state->getGridTile(newPosition.x, newPosition.y)->getType() != "Ocean" && state->getGridTile(newPosition.x, newPosition.y)->getType() != "Shore" && !state->getGridObject(newPosition.x, newPosition.y)) {
+				state->setGridObject(newPosition.x, newPosition.y, std::make_shared<Tree>(poison ? "Poison Ivy" : "Creeping Ivy"));
+				state->revealMap(newPosition, 8);
+			}
 		}
 	}
 }
@@ -140,7 +175,7 @@ void Tree::onHour(int hour) {
 	}
 	else {
 		if (state->getTimeOfDay(hour) == "Night") {
-			state->gainLight(3, getPosition());
+			state->gainLight(stats.lightIncome, getPosition());
 		}
 	}
 
@@ -148,7 +183,15 @@ void Tree::onHour(int hour) {
 }
 
 void Tree::onDay() {
-
+	if (type == "Blackberry") {
+		state->gainNutrients(state->nutrients * .1, getPosition());
+	}
+	else if (type == "Moss") {
+		int total = state->light + state->water + state->nutrients;
+		state->light = total / 3;
+		state->water = total / 3;
+		state->nutrients = total / 3;
+	}
 }
 
 void Tree::kill() {
@@ -174,6 +217,12 @@ sf::Color Tree::getMapColor() {
 	else if (type == "Root" || type == "Seaweed") {
 		return sf::Color(122, 91, 72);
 	}
+	else if (type == "Creeping Ivy") {
+		return sf::Color(124, 175, 93);
+	}
+	else if (type == "Poison Ivy") {
+		return sf::Color(173, 93, 150);
+	}
 	else {
 		return sf::Color(27, 56, 9);
 	}
@@ -181,9 +230,18 @@ sf::Color Tree::getMapColor() {
 
 void Tree::setType(std::string type) {
 	this->type = type;
+	leaves.clear();
+	totalFrames = 1;
 	if (type == "Root") {
+		stats = getTreeStats(type);
 		sprite.setTexture(state->loadTexture("Resource/Image/Tiles.png"));
 		sprite.setTextureRect(sf::IntRect(std::rand() % 6 * 10, 20, 10, 10));
+		sprite.setOrigin(5, 5);
+	}
+	else if (type == "Coral") {
+		stats = getTreeStats(type);
+		sprite.setTexture(state->loadTexture("Resource/Image/Tiles.png"));
+		sprite.setTextureRect(sf::IntRect(std::rand() % 5 * 10 + 60, 20, 10, 10));
 		sprite.setOrigin(5, 5);
 	}
 	else {
@@ -191,8 +249,8 @@ void Tree::setType(std::string type) {
 		buildTreeFromImage(type);
 	}
 
+	std::shared_ptr<GridTile> tileBelow = state->getGridTile(gridPosition.x, gridPosition.y);
 	if (type == "Willow") {
-		std::shared_ptr<GridTile> tileBelow = state->getGridTile(gridPosition.x, gridPosition.y);
 		if (tileBelow) {
 			if (tileBelow->getType() == "Water" && tileBelow->quantity > 0) {
 				stats.range = 10;
@@ -200,6 +258,22 @@ void Tree::setType(std::string type) {
 			else {
 				stats.range = 5;
 			}
+		}
+	}
+	else if (type == "Sweet Birch") {
+		if (tileBelow && tileBelow->getType() == "Nutrients") {
+			stats.lightIncome = 8;
+		}
+		else {
+			stats.lightIncome = 4;
+		}
+	}
+	else if (type == "Bamboo") {
+		stats.range = state->light / 10;
+	}
+	else if (type == "Cattail") {
+		if (tileBelow && tileBelow->getType() == "Shore") {
+			stats.waterIncome = 1;
 		}
 	}
 }
@@ -224,13 +298,13 @@ void Tree::draw(sf::RenderTarget &target, sf::RenderStates states) const {
 	}
 }
 
-void Tree::buildTreeFromImage(std::string filename, int numberOfFrames) {
+void Tree::buildTreeFromImage(std::string filename) {
 	filename.erase(std::remove_if(filename.begin(), filename.end(), std::isspace), filename.end());
 	sprite.setTexture(state->loadTexture("Resource/Image/Tree/" + filename + ".png"));
 	totalFrames = sprite.getTexture()->getSize().x / sprite.getTexture()->getSize().y;
 	sprite.setTextureRect(sf::IntRect(0, 0, sprite.getTexture()->getSize().x / totalFrames, sprite.getTexture()->getSize().y));
 	sprite.setOrigin(sprite.getTextureRect().width / 2, sprite.getTextureRect().height - 5);
-	if (numberOfFrames == 1) {
+	if (totalFrames == 1) {
 		generateLeaves(filename);
 	}
 }

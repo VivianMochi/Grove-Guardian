@@ -51,9 +51,9 @@ void PlayState::init() {
 	spiritArrow.setOrigin(20, 20);
 	spiritArrow.setPosition(120, 70);
 
-	//dayMusic.openFromFile("Resource/Music/Day.ogg");
-	//rainMusic.openFromFile("Resource/Music/RainyDay.ogg");
-	//nightMusic.openFromFile("Resource/Music/Night.ogg");
+	dayMusic.openFromFile("Resource/Music/Day.ogg");
+	rainMusic.openFromFile("Resource/Music/RainyDay.ogg");
+	nightMusic.openFromFile("Resource/Music/Night.ogg");
 
 	buildWorld(105, 105);
 
@@ -77,331 +77,363 @@ void PlayState::init() {
 }
 
 void PlayState::gotEvent(sf::Event event) {
-	if (event.type == sf::Event::MouseButtonPressed) {
-		if (event.mouseButton.button == sf::Mouse::Left) {
-			if (!isCursorOnHud()) {
-				std::shared_ptr<GridObject> object = getGridObject(getCursorGridLocation().x, getCursorGridLocation().y);
-				if (object && !object->dead && object->playerOwned) {
-					clickedObject = object;
+	if (!paused) {
+		if (event.type == sf::Event::MouseButtonPressed) {
+			if (event.mouseButton.button == sf::Mouse::Left) {
+				if (!isCursorOnHud()) {
+					std::shared_ptr<GridObject> object = getGridObject(getCursorGridLocation().x, getCursorGridLocation().y);
+					if (object && !object->dead && object->playerOwned) {
+						clickedObject = object;
+					}
+				}
+				if (!map.isCursorOnMap() && selectedObject) {
+					sf::IntRect closeButton(240 - 14, 135 - 110, 12, 12);
+					sf::IntRect trashButton(240 - 14, 135 - 56, 12, 12);
+					sf::IntRect upgrade1Button(240 - 14, 135 - 42, 12, 13);
+					sf::IntRect upgrade2Button(240 - 14, 135 - 28 - 1, 12, 14);
+					sf::IntRect upgrade3Button(240 - 14, 135 - 14 - 1, 12, 13);
+					if (closeButton.contains(getCursorLocation().x, getCursorLocation().y)) {
+						selectedObject = std::shared_ptr<GridObject>();
+						ignoreThisClick = true;
+					}
+					if (isOwnedTree(selectedObject) && trashButton.contains(getCursorLocation().x, getCursorLocation().y)) {
+						selectedObject->buffs.clear();
+						selectedObject->kill();
+						ignoreThisClick = true;
+					}
+					if (upgrade1Button.contains(getCursorLocation().x, getCursorLocation().y)) {
+						hud.chooseUpgrade(0);
+					}
+					if (upgrade2Button.contains(getCursorLocation().x, getCursorLocation().y)) {
+						hud.chooseUpgrade(1);
+					}
+					if (upgrade3Button.contains(getCursorLocation().x, getCursorLocation().y)) {
+						hud.chooseUpgrade(2);
+					}
+				}
+				if (map.isCursorOnButton()) {
+					map.toggleMap();
+					ignoreThisClick = true;
 				}
 			}
-			if (!map.isCursorOnMap() && selectedObject) {
-				sf::IntRect closeButton(240 - 14, 135 - 110, 12, 12);
-				sf::IntRect trashButton(240 - 14, 135 - 56, 12, 12);
-				sf::IntRect upgrade1Button(240 - 14, 135 - 42, 12, 13);
-				sf::IntRect upgrade2Button(240 - 14, 135 - 28 - 1, 12, 14);
-				sf::IntRect upgrade3Button(240 - 14, 135 - 14 - 1, 12, 13);
-				if (closeButton.contains(getCursorLocation().x, getCursorLocation().y)) {
+			else if (event.mouseButton.button == sf::Mouse::Right) {
+				if (selectedObject) {
 					selectedObject = std::shared_ptr<GridObject>();
 					ignoreThisClick = true;
 				}
-				if (isOwnedTree(selectedObject) && trashButton.contains(getCursorLocation().x, getCursorLocation().y)) {
-					selectedObject->buffs.clear();
-					selectedObject->kill();
+				if (map.isMapOpen()) {
+					map.toggleMap();
 					ignoreThisClick = true;
 				}
-				if (upgrade1Button.contains(getCursorLocation().x, getCursorLocation().y)) {
+			}
+		}
+		else if (event.type == sf::Event::MouseButtonReleased) {
+			if (event.mouseButton.button == sf::Mouse::Left) {
+				if (!isCursorOnHud()) {
+					std::shared_ptr<GridObject> object = getGridObject(getCursorGridLocation().x, getCursorGridLocation().y);
+					if (object && object == clickedObject && !object->dead && object->playerOwned) {
+						selectedObject = object;
+						clickedObject = std::shared_ptr<GridObject>();
+						hud.populateInfo(selectedObject);
+					}
+				}
+			}
+		}
+		else if (event.type == sf::Event::KeyPressed) {
+			if (event.key.code == sf::Keyboard::Tab || event.key.code == sf::Keyboard::Escape) {
+				if (event.key.code == sf::Keyboard::Escape && !selectedObject && !map.isMapOpen()) {
+					if (!gameOver) {
+						paused = !paused;
+					}
+				}
+				if (selectedObject) {
+					selectedObject = std::shared_ptr<GridObject>();
+				}
+				if (map.isMapOpen()) {
+					map.toggleMap();
+				}
+			}
+			else if (event.key.code == sf::Keyboard::Num1) {
+				if (selectedObject) {
 					hud.chooseUpgrade(0);
 				}
-				if (upgrade2Button.contains(getCursorLocation().x, getCursorLocation().y)) {
+			}
+			else if (event.key.code == sf::Keyboard::Num2) {
+				if (selectedObject) {
 					hud.chooseUpgrade(1);
 				}
-				if (upgrade3Button.contains(getCursorLocation().x, getCursorLocation().y)) {
+			}
+			else if (event.key.code == sf::Keyboard::Num3) {
+				if (selectedObject) {
 					hud.chooseUpgrade(2);
 				}
 			}
-			if (map.isCursorOnButton()) {
+			else if (event.key.code == sf::Keyboard::E) {
 				map.toggleMap();
-				ignoreThisClick = true;
 			}
-		}
-		else if (event.mouseButton.button == sf::Mouse::Right) {
-			if (selectedObject) {
-				selectedObject = std::shared_ptr<GridObject>();
-				ignoreThisClick = true;
+			else if (godMode && event.key.code == sf::Keyboard::O) {
+				revealMap(sf::Vector2i(), 200);
 			}
-			if (map.isMapOpen()) {
-				map.toggleMap();
-				ignoreThisClick = true;
+			else if (godMode && event.key.code == sf::Keyboard::P) {
+				game->changeState(new PlayState());
 			}
-		}
-	}
-	else if (event.type == sf::Event::MouseButtonReleased) {
-		if (event.mouseButton.button == sf::Mouse::Left) {
-			if (!isCursorOnHud()) {
-				std::shared_ptr<GridObject> object = getGridObject(getCursorGridLocation().x, getCursorGridLocation().y);
-				if (object && object == clickedObject && !object->dead && object->playerOwned) {
-					selectedObject = object;
-					clickedObject = std::shared_ptr<GridObject>();
-					hud.populateInfo(selectedObject);
+			else if (godMode && (event.key.code == sf::Keyboard::B || event.key.code == sf::Keyboard::N || event.key.code == sf::Keyboard::M)) {
+				std::shared_ptr<Spirit> spirit = std::make_shared<Spirit>();
+				spirit->setState(this);
+				spirit->setPosition(getCursorLocation() + cameraPosition);
+				spirit->init();
+				spirit->setPosition(getCursorLocation() + cameraPosition);
+				spirit->setType(event.key.code == sf::Keyboard::B ? "Normal" : event.key.code == sf::Keyboard::N ? "Tall" : "Double");
+				spirits.push_back(spirit);
+			}
+			else if (godMode && event.key.code == sf::Keyboard::X) {
+				gainNutrients(500);
+				gainWater(500);
+				gainLight(500);
+			}
+			else if (event.key.code == sf::Keyboard::Space) {
+				if (!gameOver) {
+					paused = !paused;
 				}
 			}
 		}
 	}
-	else if (event.type == sf::Event::KeyPressed) {
-		if (event.key.code == sf::Keyboard::Tab || event.key.code == sf::Keyboard::Escape) {
-			if (selectedObject) {
-				selectedObject = std::shared_ptr<GridObject>();
+	else {
+		if (event.type == sf::Event::KeyPressed) {
+			if (event.key.code == sf::Keyboard::Escape || event.key.code == sf::Keyboard::Space) {
+				if (!gameOver) {
+					paused = !paused;
+				}
 			}
-			if (map.isMapOpen()) {
-				map.toggleMap();
-			}
-		}
-		else if (event.key.code == sf::Keyboard::Num1) {
-			if (selectedObject) {
-				hud.chooseUpgrade(0);
-			}
-		}
-		else if (event.key.code == sf::Keyboard::Num2) {
-			if (selectedObject) {
-				hud.chooseUpgrade(1);
-			}
-		}
-		else if (event.key.code == sf::Keyboard::Num3) {
-			if (selectedObject) {
-				hud.chooseUpgrade(2);
-			}
-		}
-		else if (event.key.code == sf::Keyboard::E) {
-			map.toggleMap();
-		}
-		else if (godMode && event.key.code == sf::Keyboard::O) {
-			revealMap(sf::Vector2i(), 200);
-		}
-		else if (godMode && event.key.code == sf::Keyboard::P) {
-			game->changeState(new PlayState());
-		}
-		else if (godMode && (event.key.code == sf::Keyboard::B || event.key.code == sf::Keyboard::N || event.key.code == sf::Keyboard::M)) {
-			std::shared_ptr<Spirit> spirit = std::make_shared<Spirit>();
-			spirit->setState(this);
-			spirit->setPosition(getCursorLocation() + cameraPosition);
-			spirit->init();
-			spirit->setPosition(getCursorLocation() + cameraPosition);
-			spirit->setType(event.key.code == sf::Keyboard::B ? "Normal" : event.key.code == sf::Keyboard::N ? "Tall" : "Double");
-			spirits.push_back(spirit);
-		}
-		else if (godMode && event.key.code == sf::Keyboard::X) {
-			gainNutrients(500);
-			gainWater(500);
-			gainLight(500);
 		}
 	}
 }
 
 void PlayState::update(sf::Time elapsed) {
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Z) || (sf::Mouse::isButtonPressed(sf::Mouse::Left) && hud.isCursorOnFastButton())) {
-		timeSpeed = 10;
-	}
-	else {
-		timeSpeed = 1;
-	}
+	if (!paused) {
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Z) || (sf::Mouse::isButtonPressed(sf::Mouse::Left) && hud.isCursorOnFastButton())) {
+			timeSpeed = 10;
+		}
+		else {
+			timeSpeed = 1;
+		}
 
-	sf::Time adjustedElapsed = sf::seconds(elapsed.asSeconds() * timeSpeed);
-	if (timeSpeed <= 0) {
-		adjustedElapsed = sf::Time::Zero;
-	}
+		sf::Time adjustedElapsed = sf::seconds(elapsed.asSeconds() * timeSpeed);
+		if (timeSpeed <= 0) {
+			adjustedElapsed = sf::Time::Zero;
+		}
 
-	if (std::fmod(time + adjustedElapsed.asSeconds(), 0.25f) < std::fmod(time, 0.25f)) {
-		for (std::shared_ptr<Spirit> &spirit : spirits) {
-			spirit->buffs.clear();
-		}
-		for (std::shared_ptr<GridObject> &object : objectGrid) {
-			if (object) {
-				object->buffs.clear();
-			}
-		}
-		for (std::shared_ptr<GridObject> &object : objectGrid) {
-			if (object) {
-				object->onTick();
-			}
-		}
-	}
-	if (timeSpeed > 0) {
-		time += elapsed.asSeconds() * timeSpeed;
-		totalTime += elapsed.asSeconds() * timeSpeed;
-	}
-	totalTimeUnmodified += elapsed.asSeconds();
-	
-	if (time >= secondsPerDay) {
-		time = 0;
-		for (std::shared_ptr<GridObject> &object : objectGrid) {
-			if (object) {
-				object->onHour(hour);
-			}
-		}
-		hour += 1;
-		if (hour > 10) {
-			hour = 0;
-			rainCooldown -= 1;
-			if (rainCooldown == 0) {
-				rainCooldown = 3 + std::rand() % 3;
-				weather = rainy;
-			}
-			else {
-				weather = sunny;
+		if (std::fmod(time + adjustedElapsed.asSeconds(), 0.25f) < std::fmod(time, 0.25f)) {
+			for (std::shared_ptr<Spirit> &spirit : spirits) {
+				spirit->buffs.clear();
 			}
 			for (std::shared_ptr<GridObject> &object : objectGrid) {
 				if (object) {
-					object->onDay();
+					object->buffs.clear();
 				}
 			}
-			day += 1;
+			for (std::shared_ptr<GridObject> &object : objectGrid) {
+				if (object) {
+					object->onTick();
+				}
+			}
 		}
-		if (hour == 2) {
-			startDay();
+		if (timeSpeed > 0) {
+			time += elapsed.asSeconds() * timeSpeed;
+			totalTime += elapsed.asSeconds() * timeSpeed;
 		}
-		else if (hour == 9) {
-			startNight();
+		totalTimeUnmodified += elapsed.asSeconds();
+
+		if (time >= secondsPerDay) {
+			time = 0;
+			for (std::shared_ptr<GridObject> &object : objectGrid) {
+				if (object) {
+					object->onHour(hour);
+				}
+			}
+			hour += 1;
+			if (hour > 10) {
+				hour = 0;
+				rainCooldown -= 1;
+				if (rainCooldown == 0) {
+					rainCooldown = 3 + std::rand() % 3;
+					weather = rainy;
+				}
+				else {
+					weather = sunny;
+				}
+				for (std::shared_ptr<GridObject> &object : objectGrid) {
+					if (object) {
+						object->onDay();
+					}
+				}
+				day += 1;
+			}
+			if (hour == 2) {
+				startDay();
+			}
+			else if (hour == 9) {
+				startNight();
+			}
 		}
-	}
-	updateOverlays();
+		updateOverlays();
 
-	if (gameOver) {
-		cameraPosition += (sf::Vector2f(worldSize / 2) * 10.0f - sf::Vector2f(120, 70) - cameraPosition) * elapsed.asSeconds() * 5.0f;
-	}
-	else if (selectedObject) {
-		cameraPosition += (selectedObject->getPosition() - sf::Vector2f(86, 80) - cameraPosition) * elapsed.asSeconds() * 5.0f;
-
-		if (isOwnedTree(selectedObject)) {
-			rangeFinder.setRadius(std::dynamic_pointer_cast<Tree>(selectedObject)->stats.range * 10 - 2);
-			rangeFinder.setOrigin(rangeFinder.getRadius(), rangeFinder.getRadius());
-			rangeFinder.setPosition(selectedObject->getPosition() - cameraPosition);
+		if (gameOver) {
+			cameraPosition += (sf::Vector2f(worldSize / 2) * 10.0f - sf::Vector2f(120, 70) - cameraPosition) * elapsed.asSeconds() * 5.0f;
 		}
-	}
-	else {
-		cameraPosition += (player.getPosition() - sf::Vector2f(120, 70) - cameraPosition) * elapsed.asSeconds() * 5.0f;
-	}
+		else if (selectedObject) {
+			cameraPosition += (selectedObject->getPosition() - sf::Vector2f(86, 80) - cameraPosition) * elapsed.asSeconds() * 5.0f;
 
-	updateParticles(elapsed);
+			if (isOwnedTree(selectedObject)) {
+				rangeFinder.setRadius(std::dynamic_pointer_cast<Tree>(selectedObject)->stats.range * 10 - 2);
+				rangeFinder.setOrigin(rangeFinder.getRadius(), rangeFinder.getRadius());
+				rangeFinder.setPosition(selectedObject->getPosition() - cameraPosition);
+			}
+		}
+		else {
+			cameraPosition += (player.getPosition() - sf::Vector2f(120, 70) - cameraPosition) * elapsed.asSeconds() * 5.0f;
+		}
 
-	if (weather == rainy && hour >= 2 && hour <= 8) {
-		sf::Vector2f position = cameraPosition + sf::Vector2f(std::rand() % 240, std::rand() % 135 - 60);
-		createParticle(position, sf::Vector2f(-20, 200), sf::Color(119, 198, 255));
-		position = cameraPosition + sf::Vector2f(std::rand() % 240, std::rand() % 135 - 60);
-		createParticle(position, sf::Vector2f(-20, 200), sf::Color(119, 198, 255));
-		position = cameraPosition + sf::Vector2f(std::rand() % 240, std::rand() % 135 - 60);
-		createParticle(position, sf::Vector2f(-20, 200), sf::Color(119, 198, 255));
-	}
+		updateParticles(elapsed);
 
-	if (!isCursorOnHud() && !selectedObject && !ignoreThisClick) {
-		if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
-			sf::Vector2i gridLocation = getCursorGridLocation();
-			if (!getGridObject(gridLocation.x, gridLocation.y) && getGridTile(gridLocation.x, gridLocation.y)) {
-				if (getDistanceToMother(gridLocation.x, gridLocation.y) < 1000000) {
-					bool inOcean = getGridTile(gridLocation.x, gridLocation.y)->getType() == "Ocean";
-					if (!inOcean || isResearched("Seaweed")) {
-						if (spendNutrients(1, sf::Vector2f(gridLocation * 10))) {
-							setGridObject(gridLocation.x, gridLocation.y, std::make_shared<Tree>(inOcean ? "Seaweed" : "Root"));
-							revealMap(gridLocation, 8);
+		if (weather == rainy && hour >= 2 && hour <= 8) {
+			sf::Vector2f position = cameraPosition + sf::Vector2f(std::rand() % 240, std::rand() % 135 - 60);
+			createParticle(position, sf::Vector2f(-20, 200), sf::Color(119, 198, 255));
+			position = cameraPosition + sf::Vector2f(std::rand() % 240, std::rand() % 135 - 60);
+			createParticle(position, sf::Vector2f(-20, 200), sf::Color(119, 198, 255));
+			position = cameraPosition + sf::Vector2f(std::rand() % 240, std::rand() % 135 - 60);
+			createParticle(position, sf::Vector2f(-20, 200), sf::Color(119, 198, 255));
+		}
+
+		if (!isCursorOnHud() && !selectedObject && !ignoreThisClick) {
+			if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
+				sf::Vector2i gridLocation = getCursorGridLocation();
+				if (!getGridObject(gridLocation.x, gridLocation.y) && getGridTile(gridLocation.x, gridLocation.y)) {
+					if (getDistanceToMother(gridLocation.x, gridLocation.y) < 1000000) {
+						bool inOcean = getGridTile(gridLocation.x, gridLocation.y)->getType() == "Ocean";
+						if (!inOcean || isResearched("Seaweed")) {
+							if (spendNutrients(1, sf::Vector2f(gridLocation * 10))) {
+								setGridObject(gridLocation.x, gridLocation.y, std::make_shared<Tree>(inOcean ? "Seaweed" : "Root"));
+								revealMap(gridLocation, 8);
+							}
 						}
 					}
 				}
 			}
-		}
-		else {
-			if (sf::Mouse::isButtonPressed(sf::Mouse::Right)) {
-				sf::Vector2i gridLocation = getCursorGridLocation();
-				std::shared_ptr<GridObject> object = getGridObject(gridLocation.x, gridLocation.y);
-				if (isOwnedTree(object) && (std::dynamic_pointer_cast<Tree>(object)->getType() == "Root" || std::dynamic_pointer_cast<Tree>(object)->getType() == "Seaweed")) {
-					object->buffs.clear();
-					object->kill();
+			else {
+				if (sf::Mouse::isButtonPressed(sf::Mouse::Right)) {
+					sf::Vector2i gridLocation = getCursorGridLocation();
+					std::shared_ptr<GridObject> object = getGridObject(gridLocation.x, gridLocation.y);
+					if (isOwnedTree(object) && (std::dynamic_pointer_cast<Tree>(object)->getType() == "Root" || std::dynamic_pointer_cast<Tree>(object)->getType() == "Seaweed" || std::dynamic_pointer_cast<Tree>(object)->getType() == "Creeping Ivy" || std::dynamic_pointer_cast<Tree>(object)->getType() == "Poison Ivy")) {
+						object->buffs.clear();
+						object->kill();
+					}
 				}
 			}
 		}
-	}
-	if (ignoreThisClick && !sf::Mouse::isButtonPressed(sf::Mouse::Left) && !sf::Mouse::isButtonPressed(sf::Mouse::Right)) {
-		ignoreThisClick = false;
-	}
-
-	for (std::shared_ptr<GridTile> &object : tileGrid) {
-		if (object) {
-			object->update(adjustedElapsed);
+		if (ignoreThisClick && !sf::Mouse::isButtonPressed(sf::Mouse::Left) && !sf::Mouse::isButtonPressed(sf::Mouse::Right)) {
+			ignoreThisClick = false;
 		}
-	}
-	bool motherPresent = false;
-	bool towersCharged = true;
-	for (std::shared_ptr<GridObject> &object : objectGrid) {
-		if (object) {
-			if (isOwnedTree(object) && std::dynamic_pointer_cast<Tree>(object)->getType().find("Mother") != -1) {
-				motherPresent = true;
-			}
-			else if (std::dynamic_pointer_cast<Ruin>(object) && std::dynamic_pointer_cast<Ruin>(object)->getType() == "Large" && !std::dynamic_pointer_cast<Ruin>(object)->isCharged()) {
-				towersCharged = false;
-			}
 
-			if (object->dead) {
-				object = std::shared_ptr<GridObject>();
-			}
-			else {
+		for (std::shared_ptr<GridTile> &object : tileGrid) {
+			if (object) {
 				object->update(adjustedElapsed);
 			}
 		}
-	}
-	if (!gameOver && motherPresent == false) {
-		gameOver = true;
-		gameText.setText("The mother tree has\nfallen on Day " + std::to_string(day) + ".");
-	}
-	else if (!gameOver && towersCharged == true) {
-		gameOver = true;
-		gameWon = true;
-		gameText.setText("The grove is safe.\nDays taken: " + std::to_string(day));
-	}
-	if (!gameOver) {
-		gameOverlayAlpha += (0 - gameOverlayAlpha) * elapsed.asSeconds() * 0.5;
-		gameOverlay.setFillColor(sf::Color(0, 0, 0, gameOverlayAlpha));
+		bool motherPresent = false;
+		bool towersCharged = true;
+		for (std::shared_ptr<GridObject> &object : objectGrid) {
+			if (object) {
+				if (isOwnedTree(object) && std::dynamic_pointer_cast<Tree>(object)->getType().find("Mother") != -1) {
+					motherPresent = true;
+				}
+				else if (std::dynamic_pointer_cast<Ruin>(object) && std::dynamic_pointer_cast<Ruin>(object)->getType() == "Large" && !std::dynamic_pointer_cast<Ruin>(object)->isCharged()) {
+					towersCharged = false;
+				}
+
+				if (object->dead) {
+					object = std::shared_ptr<GridObject>();
+				}
+				else {
+					object->update(adjustedElapsed);
+				}
+			}
+		}
+		if (!gameOver && motherPresent == false) {
+			gameOver = true;
+			gameText.setText("The mother tree has\nfallen on Day " + std::to_string(day) + ".");
+		}
+		else if (!gameOver && towersCharged == true) {
+			gameOver = true;
+			gameWon = true;
+			gameText.setText("The grove is safe.\nDays taken: " + std::to_string(day));
+		}
+		if (!gameOver) {
+			gameOverlayAlpha += (0 - gameOverlayAlpha) * elapsed.asSeconds() * 0.5;
+			gameOverlay.setFillColor(sf::Color(0, 0, 0, gameOverlayAlpha));
+		}
+		else {
+			gameOverlayAlpha += (255 - gameOverlayAlpha) * elapsed.asSeconds() * 0.5;
+			gameOverlay.setFillColor(sf::Color(0, 0, 0, gameOverlayAlpha));
+			dayMusic.setVolume(std::max((255 - gameOverlayAlpha) / 255.0f * 100.0f, 0.0f));
+			rainMusic.setVolume(std::max((255 - gameOverlayAlpha) / 255.0f * 100.0f, 0.0f));
+			nightMusic.setVolume(std::max((255 - gameOverlayAlpha) / 255.0f * 100.0f, 0.0f));
+		}
+		gameText.setColor(sf::Color(255, 255, 255, std::min(255.0f, gameOverlayAlpha * 2)));
+
+		calculateMaxResources();
+
+		for (std::shared_ptr<Spirit> &spirit : spirits) {
+			spirit->update(adjustedElapsed);
+		}
+
+		if (getClosestSpirit(getPlayerLocation())) {
+			sf::Vector2f directionPosition = getClosestSpirit(getPlayerLocation())->getPosition();
+			int dx = directionPosition.x - getPlayerLocation().x;
+			int dy = directionPosition.y - getPlayerLocation().y;
+			int textureX = 40;
+			int textureY = 40;
+			if (dx <= -100) {
+				textureX = 0;
+			}
+			else if (dx >= 100) {
+				textureX = 80;
+			}
+			if (dy <= -60) {
+				textureY = 0;
+			}
+			else if (dy >= 60) {
+				textureY = 80;
+			}
+			spiritArrow.setTextureRect(sf::IntRect(textureX, textureY, 40, 40));
+			spiritArrow.setColor(sf::Color(255, 255, 255, std::fmod(totalTimeUnmodified, 1) < 0.5 ? 255 : 100));
+		}
+		else {
+			spiritArrow.setTextureRect(sf::IntRect(40, 40, 40, 40));
+		}
+
+		if (selectedObject && selectedObject->dead) {
+			selectedObject = std::shared_ptr<GridObject>();
+		}
+
+		if (selectedObject) {
+			hud.populateInfo(selectedObject);
+		}
+
+		player.update(elapsed);
+		hud.update(elapsed);
+		map.update(elapsed);
+
+		oceanOverlay.setTextureRect(sf::IntRect(std::round(totalTime * 5 + cameraPosition.x), std::round(0 - totalTime * 3 + cameraPosition.y), 240, 135));
+		oceanUnderlay.setTextureRect(sf::IntRect(std::round(totalTime * 4 - cameraPosition.x), std::round(0 - totalTime * 6 + cameraPosition.y), 240, 135));
+
+		cursor.setPosition(getCursorGridLocation().x * 10 - cameraPosition.x, getCursorGridLocation().y * 10 - cameraPosition.y);
 	}
 	else {
-		gameOverlayAlpha += (255 - gameOverlayAlpha) * elapsed.asSeconds() * 0.5;
-		gameOverlay.setFillColor(sf::Color(0, 0, 0, gameOverlayAlpha));
-		dayMusic.setVolume(std::max((255 - gameOverlayAlpha) / 255.0f * 100.0f, 0.0f));
-		rainMusic.setVolume(std::max((255 - gameOverlayAlpha) / 255.0f * 100.0f, 0.0f));
-		nightMusic.setVolume(std::max((255 - gameOverlayAlpha) / 255.0f * 100.0f, 0.0f));
+		gameOverlay.setFillColor(sf::Color(0, 0, 0, 150));
+		gameText.setText(" Game is Paused");
+		gameText.setColor(sf::Color(255, 255, 255));
 	}
-	gameText.setColor(sf::Color(255, 255, 255, std::min(255.0f, gameOverlayAlpha * 2)));
-
-	calculateMaxResources();
-
-	for (std::shared_ptr<Spirit> &spirit : spirits) {
-		spirit->update(adjustedElapsed);
-	}
-
-	if (getClosestSpirit(getPlayerLocation())) {
-		sf::Vector2f directionPosition = getClosestSpirit(getPlayerLocation())->getPosition();
-		int dx = directionPosition.x - getPlayerLocation().x;
-		int dy = directionPosition.y - getPlayerLocation().y;
-		int textureX = 40;
-		int textureY = 40;
-		if (dx <= -100) {
-			textureX = 0;
-		}
-		else if (dx >= 100) {
-			textureX = 80;
-		}
-		if (dy <= -60) {
-			textureY = 0;
-		}
-		else if (dy >= 60) {
-			textureY = 80;
-		}
-		spiritArrow.setTextureRect(sf::IntRect(textureX, textureY, 40, 40));
-		spiritArrow.setColor(sf::Color(255, 255, 255, std::fmod(totalTimeUnmodified, 1) < 0.5 ? 255 : 100));
-	}
-	else {
-		spiritArrow.setTextureRect(sf::IntRect(40, 40, 40, 40));
-	}
-
-	if (selectedObject && selectedObject->dead) {
-		selectedObject = std::shared_ptr<GridObject>();
-	}
-
-	player.update(elapsed);
-	hud.update(elapsed);
-	map.update(elapsed);
-
-	oceanOverlay.setTextureRect(sf::IntRect(std::round(totalTime * 5 + cameraPosition.x), std::round(0 - totalTime * 3 + cameraPosition.y), 240, 135));
-	oceanUnderlay.setTextureRect(sf::IntRect(std::round(totalTime * 4 - cameraPosition.x), std::round(0 - totalTime * 6 + cameraPosition.y), 240, 135));
-
-	cursor.setPosition(getCursorGridLocation().x * 10 - cameraPosition.x, getCursorGridLocation().y * 10 - cameraPosition.y);
 }
 
 std::string PlayState::getTimeOfDay(int hour) {
@@ -614,7 +646,7 @@ void PlayState::render(sf::RenderWindow &window) {
 		window.draw(rangeFinder);
 	}
 
-	if (!isCursorOnHud()) {
+	if (!isCursorOnHud() && getGridTile(getCursorGridLocation().x, getCursorGridLocation().y) && !paused) {
 		window.draw(cursor);
 	}
 
@@ -724,9 +756,14 @@ void PlayState::buildWorld(int worldWidth, int worldHeight) {
 	createRuin("Small", "Bamboo");
 	createRuin("Small", "Mangrove");
 	createRuin("Small", "Willow");
+	createRuin("Small", "Corn");
+	createRuin("Small", "Blackberry");
 	createRuin("Small", "Succulent");
 	createRuin("Small", "Aloe");
 	createRuin("Small", "Cactus");
+	createRuin("Small", "Ivy");
+	createRuin("Small", "Creeping Ivy");
+	createRuin("Small", "Poison Ivy");
 	createRuin("Small", "Cattail");
 	createRuin("Small", "Moss");
 	createRuin("Small", "Venus Fly Trap");
@@ -735,7 +772,10 @@ void PlayState::buildWorld(int worldWidth, int worldHeight) {
 	createRuin("Small", "Mushroom");
 	createRuin("Small", "Megashroom");
 	createRuin("Small", "Glowshroom");
-	//createRuin("Small", "Coral");
+	createRuin("Small", "Red Algae");
+	createRuin("Small", "Gulfweed");
+	createRuin("Small", "Sea Sponge");
+	createRuin("Small", "Sea Anemone");
 	createRuin("Small", "Grand Mother");
 
 	// Add shoreline proper
@@ -788,7 +828,7 @@ sf::Vector2i PlayState::getRandomLocation(bool close, bool acceptWater) {
 }
 
 void PlayState::createRuin(std::string type, std::string subType) {
-	sf::Vector2i location = getRandomLocation(type == "Small" && getTreeTier(subType) == 2, type == "Small" && getTreeTier(subType) == 3);
+	sf::Vector2i location = getRandomLocation(type == "Small" && getTreeTier(subType) == 2, type == "Small" && getTreeTier(subType) == 3 && std::rand() % 3 == 0);
 	setGridObject(location.x, location.y, std::make_shared<Ruin>(type, subType));
 }
 
