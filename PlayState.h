@@ -47,6 +47,8 @@ public:
 	void gainNutrients(float gained, sf::Vector2f position = sf::Vector2f(-100, -100));
 	bool spendNutrients(float spent, sf::Vector2f position = sf::Vector2f(-100, -100));
 
+	void emitBuff(std::string buff, sf::Vector2f position, float radius);
+
 	std::shared_ptr<GridTile> getGridTile(int x, int y);
 	void setGridTile(int x, int y, std::string newType);
 	int getSurroundingLand(int x, int y);

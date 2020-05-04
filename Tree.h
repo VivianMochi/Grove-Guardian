@@ -13,7 +13,7 @@ public:
 	void init() override;
 	void update(sf::Time elapsed) override;
 
-	void onHalfSecond() override;
+	void onTick() override;
 	void onHour(int hour) override;
 	void onDay() override;
 

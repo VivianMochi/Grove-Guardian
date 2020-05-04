@@ -8,8 +8,8 @@ GridObject::~GridObject() {
 
 }
 
-void GridObject::onHalfSecond() {
-
+void GridObject::onTick() {
+	
 }
 
 void GridObject::onHour(int hour) {

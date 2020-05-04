@@ -96,6 +96,7 @@ void PlayState::gotEvent(sf::Event event) {
 					ignoreThisClick = true;
 				}
 				if (isOwnedTree(selectedObject) && trashButton.contains(getCursorLocation().x, getCursorLocation().y)) {
+					selectedObject->buffs.clear();
 					selectedObject->kill();
 					ignoreThisClick = true;
 				}
@@ -200,10 +201,18 @@ void PlayState::update(sf::Time elapsed) {
 		adjustedElapsed = sf::Time::Zero;
 	}
 
-	if (std::fmod(time + adjustedElapsed.asSeconds(), 0.5f) < std::fmod(time, 0.5f)) {
+	if (std::fmod(time + adjustedElapsed.asSeconds(), 0.25f) < std::fmod(time, 0.25f)) {
+		for (std::shared_ptr<Spirit> &spirit : spirits) {
+			spirit->buffs.clear();
+		}
 		for (std::shared_ptr<GridObject> &object : objectGrid) {
 			if (object) {
-				object->onHalfSecond();
+				object->buffs.clear();
+			}
+		}
+		for (std::shared_ptr<GridObject> &object : objectGrid) {
+			if (object) {
+				object->onTick();
 			}
 		}
 	}
@@ -294,6 +303,7 @@ void PlayState::update(sf::Time elapsed) {
 				sf::Vector2i gridLocation = getCursorGridLocation();
 				std::shared_ptr<GridObject> object = getGridObject(gridLocation.x, gridLocation.y);
 				if (isOwnedTree(object) && (std::dynamic_pointer_cast<Tree>(object)->getType() == "Root" || std::dynamic_pointer_cast<Tree>(object)->getType() == "Seaweed")) {
+					object->buffs.clear();
 					object->kill();
 				}
 			}
@@ -521,6 +531,25 @@ bool PlayState::spendNutrients(float spent, sf::Vector2f position) {
 	}
 }
 
+void PlayState::emitBuff(std::string buff, sf::Vector2f position, float radius) {
+	for (std::shared_ptr<GridObject> &object : objectGrid) {
+		if (isOwnedTree(object)) {
+			float distance = std::sqrt(std::pow(object->getPosition().x - position.x, 2) + std::pow(object->getPosition().y - position.y, 2));
+			if (distance <= radius * 10 + 5) {
+				object->buffs.push_back(buff);
+			}
+		}
+	}
+	for (std::shared_ptr<Spirit> &spirit : spirits) {
+		if (!spirit->dead) {
+			float distance = std::sqrt(std::pow(spirit->getPosition().x - position.x, 2) + std::pow(spirit->getPosition().y - position.y, 2));
+			if (distance <= radius * 10 + 5) {
+				spirit->buffs.push_back(buff);
+			}
+		}
+	}
+}
+
 void PlayState::createParticle(sf::Vector2f position, sf::Vector2f velocity, sf::Color color, Particle::ParticleType type, bool onHud) {
 	Particle particle;
 	particle.type = type;
@@ -591,7 +620,9 @@ void PlayState::render(sf::RenderWindow &window) {
 
 	window.draw(player);
 
-	window.draw(spiritArrow);
+	if (!selectedObject) {
+		window.draw(spiritArrow);
+	}
 
 	window.draw(hud);
 	for (Particle &particle : particles) {
@@ -691,10 +722,16 @@ void PlayState::buildWorld(int worldWidth, int worldHeight) {
 	createRuin("Small", "Birch");
 	createRuin("Small", "Sweet Birch");
 	createRuin("Small", "Bamboo");
+	createRuin("Small", "Mangrove");
 	createRuin("Small", "Willow");
+	createRuin("Small", "Succulent");
 	createRuin("Small", "Aloe");
-	createRuin("Small", "Venus Fly Trap");
 	createRuin("Small", "Cactus");
+	createRuin("Small", "Cattail");
+	createRuin("Small", "Moss");
+	createRuin("Small", "Venus Fly Trap");
+	createRuin("Small", "Pitcher Plant");
+	createRuin("Small", "Rafflesia");
 	createRuin("Small", "Mushroom");
 	createRuin("Small", "Megashroom");
 	createRuin("Small", "Glowshroom");
@@ -819,6 +856,7 @@ void PlayState::setGridObject(int x, int y, std::shared_ptr<GridObject> newObjec
 		newObject->setState(this);
 		newObject->gridPosition = sf::Vector2i(x, y);
 		newObject->setPosition(x * 10, y * 10);
+		//newObject->setPosition(x * 10 - 1 + std::rand() % 3, y * 10 - 1 + std::rand() % 3);
 		newObject->init();
 		objectGrid[y * worldSize.x + x] = newObject;
 	}

@@ -1,6 +1,7 @@
 #include "Spirit.h"
 
 #include "PlayState.h"
+#include <algorithm>
 
 void Spirit::init() {
 	if (state->day >= 4 && std::rand() % 5 == 0) {
@@ -89,8 +90,12 @@ void Spirit::updateVelocity(sf::Time elapsed) {
 	}
 	// Cap velocity
 	float speed = std::sqrt(std::pow(velocity.x, 2) + std::pow(velocity.y, 2));
-	if (speed > topSpeed) {
-		velocity *= topSpeed / speed;
+	float modifiedTopSpeed = topSpeed;
+	if (std::find(buffs.begin(), buffs.end(), "Megashroom") != buffs.end()) {
+		modifiedTopSpeed = 8;
+	}
+	if (speed > modifiedTopSpeed) {
+		velocity *= modifiedTopSpeed / speed;
 	}
 }
 

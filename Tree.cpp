@@ -26,13 +26,14 @@ void Tree::init() {
 }
 
 void Tree::update(sf::Time elapsed) {
-	attackCooldown -= elapsed.asSeconds() * 1.01;
+	attackCooldown -= elapsed.asSeconds() * 1.05;
 
 	if (getType().find("Mother") == -1) {
 		if (distanceToMother < state->getDistanceToMother(gridPosition.x, gridPosition.y)) {
 			distanceToMother += 1;
 			health -= elapsed.asSeconds();
 			if (health <= 0) {
+				buffs.clear();
 				kill();
 			}
 		}
@@ -59,10 +60,22 @@ void Tree::update(sf::Time elapsed) {
 
 	updateAnimation(elapsed);
 
+	if (stats.buff && std::rand() % 4 == 0) {
+		if (type != "Megashroom" || state->getTimeOfDay(state->hour) == "Night") {
+			float angle = std::rand() % 360 / 2.0f / 3.14159f;
+			float dist = std::rand() % (int)(stats.range * 10);
+			sf::Color color(229, 190, 167);
+			if (type == "Aloe") {
+				color = state->getResourceColor("Light");
+			}
+			state->createParticle(getPosition() + sf::Vector2f(dist * std::cos(angle), dist * std::sin(angle)), sf::Vector2f(0, -6), color);
+		}
+	}
+
 	sprite.setPosition(getPosition() - state->cameraPosition);
 }
 
-void Tree::onHalfSecond() {
+void Tree::onTick() {
 	if (stats.range > 0 && stats.attackRate > 0 && attackCooldown <= 0) {
 		target = state->getClosestSpirit(getPosition());
 		if (target) {
@@ -79,6 +92,11 @@ void Tree::onHalfSecond() {
 					}
 				}
 			}
+		}
+	}
+	if (stats.buff) {
+		if (type != "Megashroom" || state->getTimeOfDay(state->hour) == "Night") {
+			state->emitBuff(type, getPosition(), stats.range);
 		}
 	}
 }
@@ -134,17 +152,26 @@ void Tree::onDay() {
 }
 
 void Tree::kill() {
-	GridObject::kill();
-	state->createParticle(getPosition() + sf::Vector2f(std::rand() % 7 - 3, std::rand() % 7 - 3), sf::Vector2f(0, -6), sf::Color(51, 30, 16));
-	state->createParticle(getPosition() + sf::Vector2f(std::rand() % 7 - 3, std::rand() % 7 - 3), sf::Vector2f(1, -5), sf::Color(51, 30, 16));
-	state->createParticle(getPosition() + sf::Vector2f(std::rand() % 7 - 3, std::rand() % 7 - 3), sf::Vector2f(-1, -5), sf::Color(51, 30, 16));
+	bool safe = false;
+	if (std::find(buffs.begin(), buffs.end(), "Aloe") != buffs.end()) {
+		safe = state->spendLight(5);
+		if (safe && state->getClosestSpirit(getPosition())) {
+			state->getClosestSpirit(getPosition())->kill();
+		}
+	}
+	if (!safe) {
+		GridObject::kill();
+		state->createParticle(getPosition() + sf::Vector2f(std::rand() % 7 - 3, std::rand() % 7 - 3), sf::Vector2f(0, -6), sf::Color(51, 30, 16));
+		state->createParticle(getPosition() + sf::Vector2f(std::rand() % 7 - 3, std::rand() % 7 - 3), sf::Vector2f(1, -5), sf::Color(51, 30, 16));
+		state->createParticle(getPosition() + sf::Vector2f(std::rand() % 7 - 3, std::rand() % 7 - 3), sf::Vector2f(-1, -5), sf::Color(51, 30, 16));
+	}
 }
 
 sf::Color Tree::getMapColor() {
 	if (getType().find("Mother") != -1) {
 		return sf::Color(234, 136, 155);
 	}
-	else if (type == "Root") {
+	else if (type == "Root" || type == "Seaweed") {
 		return sf::Color(122, 91, 72);
 	}
 	else {

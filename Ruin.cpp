@@ -52,7 +52,7 @@ void Ruin::setType(std::string type, std::string subType) {
 		sprite.setTexture(state->loadTexture("Resource/Image/Ruin.png"));
 		sprite.setTextureRect(sf::IntRect(state->getGridTile(gridPosition.x, gridPosition.y)->getType() == "Ocean" ? 10 : 0, 0, 10, 20));
 		sprite.setOrigin(5, 15);
-		maxCharge = getTreeTier(subType) == 3 ? 50 : 30;
+		maxCharge = getTreeTier(subType) == 3 ? 40 : 20;
 	}
 	else if (type == "Large") {
 		sprite.setTexture(state->loadTexture("Resource/Image/LargeRuin.png"));

@@ -7,7 +7,7 @@ public:
 	GridObject();
 	virtual ~GridObject();
 
-	virtual void onHalfSecond();
+	virtual void onTick();
 	virtual void onHour(int hour);
 	virtual void onDay();
 
@@ -19,5 +19,6 @@ public:
 	bool playerOwned = false;
 
 	bool dead = false;
+	std::vector<std::string> buffs;
 };
 

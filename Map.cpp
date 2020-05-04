@@ -105,9 +105,9 @@ void Map::renderMap(sf::RenderTarget &target) const {
 	// Render player
 	if (state->getGridTile(state->getPlayerLocation().x / 10, state->getPlayerLocation().y / 10)) {
 		pixel.setPosition(topLeft + state->getPlayerLocation() / 10.0f);
-		pixel.setFillColor(sf::Color(255, 0, 0));
+		pixel.setFillColor(sf::Color(234, 136, 155));
 		if (blinkTime < 0.4) {
-			pixel.setFillColor(sf::Color(255, 0, 0, 50));
+			pixel.setFillColor(sf::Color(234, 136, 155, 50));
 		}
 		target.draw(pixel);
 	}

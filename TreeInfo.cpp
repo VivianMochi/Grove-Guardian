@@ -5,7 +5,7 @@ std::vector<std::string> getTreeUpgradeOptions(std::string type) {
 		return { "Sapling", "Shrub", "Weeds" };
 	}
 	else if (type == "Sapling") {
-		return { "Oak", "Birch", "Willow" };
+		return { "Oak", "Birch", "Mangrove" };
 	}
 	else if (type == "Oak") {
 		return { "Red Oak", "Holly Oak" };
@@ -13,26 +13,29 @@ std::vector<std::string> getTreeUpgradeOptions(std::string type) {
 	else if (type == "Birch") {
 		return { "Sweet Birch", "Bamboo" };
 	}
-	else if (type == "Willow") {
-		return { "TODO", "TODO" };
+	else if (type == "Mangrove") {
+		return { "Willow", "TODO" };
 	}
 	else if (type == "Shrub") {
-		return { "Soybean", "Cactus", "TODO" };
+		return { "Soybean", "Succulent", "SHRUBTODO" };
 	}
 	else if (type == "Soybean") {
 		return { "TODO", "TODO" };
 	}
-	else if (type == "Cactus") {
+	else if (type == "Succulent") {
+		return { "Aloe", "Cactus" };
+	}
+	else if (type == "SHRUBTODO") {
 		return { "TODO", "TODO" };
 	}
 	else if (type == "Weeds") {
-		return { "Waterlily", "Aloe", "Mushroom" };
+		return { "Waterlily", "Venus Fly Trap", "Mushroom" };
 	}
 	else if (type == "Waterlily") {
-		return { "Mangrove", "Moss" };
+		return { "Cattail", "Moss" };
 	}
-	else if (type == "Aloe") {
-		return { "Venus Fly Trap", "TODO" };
+	else if (type == "Venus Fly Trap") {
+		return { "Pitcher Plant", "Rafflesia" };
 	}
 	else if (type == "Mushroom") {
 		return { "Megashroom", "Glowshroom"};
@@ -59,15 +62,24 @@ std::vector<std::string> getTreeUpgradeOptions(std::string type) {
 
 UpgradeCost getTreeUpgradeCost(std::string type) {
 	if (type == "Sapling") {
-		return UpgradeCost(8, 2);
+		return UpgradeCost(5, 2);
 	}
 	else if (type == "Shrub") {
-		return UpgradeCost(5, 4);
+		return UpgradeCost(2, 4);
 	}
 	else if (type == "Weeds") {
 		return UpgradeCost(2, 0);
 	}
 	else if (type == "Oak") {
+		return UpgradeCost(10, 8);
+	}
+	else if (type == "Red Oak") {
+		return UpgradeCost(15, 8);
+	}
+	else if (type == "Holly Oak") {
+		return UpgradeCost(15, 8);
+	}
+	else if (type == "Birch") {
 		return UpgradeCost(15, 8);
 	}
 	else if (type == "Willow") {
@@ -216,8 +228,13 @@ TreeStats getTreeStats(std::string type) {
 	else if (type == "Willow") {
 		return TreeStats{ 5, 4, 3, 1, 5, 0.5 };
 	}
+	else if (type == "Aloe") {
+		TreeStats stats{ 0, 0, 0, 0, 6, 0 };
+		stats.buff = true;
+		return stats;
+	}
 	else if (type == "Cactus") {
-		return TreeStats{ 0, 8, 0, 0, 6, 1 };
+		return TreeStats{ 0, 8, 0, 0, 6, 4 };
 	}
 	else if (type == "Soybean") {
 		return TreeStats{ 0, 0, 2, 0, 4, 0.25, 1, 1, 0, 1};
@@ -229,7 +246,9 @@ TreeStats getTreeStats(std::string type) {
 		return TreeStats{ 0, 0, 0, 0, 0, 0, 1, 3 };
 	}
 	else if (type == "Megashroom") {
-		return TreeStats{ 0, 0, 5, 3, 6, 0 };
+		TreeStats stats{ 0, 0, 5, 3, 6, 0 };
+		stats.buff = true;
+		return stats;
 	}
 	else if (type == "Glowshroom") {
 		return TreeStats{ 0, 0, 5, 3, 4, 0.25 };

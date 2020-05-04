@@ -184,7 +184,7 @@ void Hud::populateInfo(std::shared_ptr<GridObject> object) {
 		}
 		else {
 			infoTitle.setText("Garden Shrine");
-			infoDescription.setText("A shrine that\nteaches how to\ngrow the\n" + ruinObject->getSubType() + "\nplant when given\nenough light.");
+			infoDescription.setText("A shrine that\nteaches you\nhow to grow\n" + ruinObject->getSubType() + "\nwhen given\nenough light.");
 		}
 		if (ruinObject->charge < ruinObject->maxCharge) {
 			upgrade3Text.setText(std::to_string(ruinObject->charge) + "/" + std::to_string(ruinObject->maxCharge));
@@ -312,6 +312,13 @@ void Hud::draw(sf::RenderTarget &target, sf::RenderStates states) const {
 		target.draw(corner);
 		corner.setPosition(infoPane.getPosition() + sf::Vector2f(103, 109));
 		target.draw(corner);
+
+		if (ruinObject->charge < ruinObject->maxCharge) {
+			sf::Sprite enabledButton(state->loadTexture("Resource/Image/EnabledButton.png"));
+			enabledButton.setTextureRect(sf::IntRect(12, 0, 12, 12));
+			enabledButton.setPosition(infoPane.getPosition() + sf::Vector2f(106, 98));
+			target.draw(enabledButton);
+		}
 	}
 	target.draw(upgrade1Text);
 	target.draw(upgrade2Text);
@@ -329,6 +336,29 @@ void Hud::draw(sf::RenderTarget &target, sf::RenderStates states) const {
 		if (upgrade3Text.text == "") {
 			noUpgrade.setPosition(infoPane.getPosition() + sf::Vector2f(2, 98));
 			target.draw(noUpgrade);
+		}
+	}
+
+	if (state->isOwnedTree(state->selectedObject)) {
+		sf::Sprite enabledButton(state->loadTexture("Resource/Image/EnabledButton.png"));
+		enabledButton.setTextureRect(sf::IntRect(0, 0, 12, 12));
+		if (upgrade1Text.text != "" && upgrade1Text.getText() != "???") {
+			if (getTreeUpgradeCost(upgrade1Text.getText()).light <= state->light && getTreeUpgradeCost(upgrade1Text.getText()).nutrients <= state->nutrients) {
+				enabledButton.setPosition(infoPane.getPosition() + sf::Vector2f(106, 70));
+				target.draw(enabledButton);
+			}
+		}
+		if (upgrade2Text.text != "" && upgrade2Text.getText() != "???") {
+			if (getTreeUpgradeCost(upgrade2Text.getText()).light <= state->light && getTreeUpgradeCost(upgrade2Text.getText()).nutrients <= state->nutrients) {
+				enabledButton.setPosition(infoPane.getPosition() + sf::Vector2f(106, 84));
+				target.draw(enabledButton);
+			}
+		}
+		if (upgrade3Text.text != "" && upgrade3Text.getText() != "???") {
+			if (getTreeUpgradeCost(upgrade3Text.getText()).light <= state->light && getTreeUpgradeCost(upgrade3Text.getText()).nutrients <= state->nutrients) {
+				enabledButton.setPosition(infoPane.getPosition() + sf::Vector2f(106, 98));
+				target.draw(enabledButton);
+			}
 		}
 	}
 
@@ -404,38 +434,38 @@ void Hud::renderCost(sf::RenderTarget &target, int light, int nutrients) const {
 
 void Hud::updateDeltaTexts(sf::Time elapsed) {
 	if (lightDeltaText.getPosition().x > 0) {
-		lightDeltaText.move((sf::Vector2f(53, 18) - lightDeltaText.getPosition()) * elapsed.asSeconds() * 2.0f);
-		if (lightDeltaText.getPosition().x > 52) {
+		lightDeltaText.move((sf::Vector2f(73, 18) - lightDeltaText.getPosition()) * elapsed.asSeconds() * 2.0f);
+		if (lightDeltaText.getPosition().x > 72) {
 			lightDeltaText.setPosition(-100, -100);
 		}
 	}
 	if ((int)state->light != (int)lastLight) {
 		int delta = (int)state->light - (int)lastLight;
 		lightDeltaText.setText((delta > 0 ? "+" : "") + std::to_string((int)state->light - (int)lastLight));
-		lightDeltaText.setPosition(40, 18);
+		lightDeltaText.setPosition(50, 18);
 	}
 
 	if (waterDeltaText.getPosition().x > 0) {
-		waterDeltaText.move((sf::Vector2f(53, 28) - waterDeltaText.getPosition()) * elapsed.asSeconds() * 2.0f);
-		if (waterDeltaText.getPosition().x > 52) {
+		waterDeltaText.move((sf::Vector2f(73, 28) - waterDeltaText.getPosition()) * elapsed.asSeconds() * 2.0f);
+		if (waterDeltaText.getPosition().x > 72) {
 			waterDeltaText.setPosition(-100, -100);
 		}
 	}
 	if ((int)state->water != (int)lastWater) {
 		int delta = (int)state->water - (int)lastWater;
 		waterDeltaText.setText((delta > 0 ? "+" : "") + std::to_string((int)state->water - (int)lastWater));
-		waterDeltaText.setPosition(40, 28);
+		waterDeltaText.setPosition(50, 28);
 	}
 
 	if (nutrientsDeltaText.getPosition().x > 0) {
-		nutrientsDeltaText.move((sf::Vector2f(53, 38) - nutrientsDeltaText.getPosition()) * elapsed.asSeconds() * 2.0f);
-		if (nutrientsDeltaText.getPosition().x > 52) {
+		nutrientsDeltaText.move((sf::Vector2f(73, 38) - nutrientsDeltaText.getPosition()) * elapsed.asSeconds() * 2.0f);
+		if (nutrientsDeltaText.getPosition().x > 72) {
 			nutrientsDeltaText.setPosition(-100, -100);
 		}
 	}
 	if ((int)state->nutrients != (int)lastNutrients) {
 		int delta = (int)state->nutrients - (int)lastNutrients;
 		nutrientsDeltaText.setText((delta > 0 ? "+" : "") + std::to_string((int)state->nutrients - (int)lastNutrients));
-		nutrientsDeltaText.setPosition(40, 38);
+		nutrientsDeltaText.setPosition(50, 38);
 	}
 }

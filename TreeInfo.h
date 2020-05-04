@@ -22,6 +22,7 @@ struct TreeStats {
 	int nutrientsMultiplier = 1;
 	int waterIncome = 0;
 	int nutrientsIncome = 0;
+	bool buff = false;
 	sf::Color color;
 };
 

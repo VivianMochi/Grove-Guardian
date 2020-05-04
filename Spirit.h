@@ -16,6 +16,8 @@ public:
 	std::string type = "Normal";
 	void setType(std::string type);
 
+	std::vector<std::string> buffs;
+
 private:
 	// Inherited via Drawable
 	virtual void draw(sf::RenderTarget &target, sf::RenderStates states) const override;
