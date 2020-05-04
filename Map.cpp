@@ -89,12 +89,28 @@ void Map::renderMap(sf::RenderTarget &target) const {
 			}
 		}
 	}
-	pixel.setPosition(topLeft.x + state->getPlayerLocation().x / 10, topLeft.y + state->getPlayerLocation().y / 10);
-	pixel.setFillColor(sf::Color(255, 0, 0));
-	if (blinkTime < 0.4) {
-		pixel.setFillColor(sf::Color(255, 0, 0, 50));
+
+	// Render spirits
+	for (const std::shared_ptr<Spirit> &spirit : state->spirits) {
+		if (!spirit->dead && state->getGridTile(spirit->getPosition().x / 10, spirit->getPosition().y / 10)) {
+			pixel.setPosition(topLeft + spirit->getPosition() / 10.0f);
+			pixel.setFillColor(sf::Color(0, 0, 0));
+			if (blinkTime >= 0.4) {
+				pixel.setFillColor(sf::Color(0, 0, 0, 50));
+			}
+			target.draw(pixel);
+		}
 	}
-	target.draw(pixel);
+
+	// Render player
+	if (state->getGridTile(state->getPlayerLocation().x / 10, state->getPlayerLocation().y / 10)) {
+		pixel.setPosition(topLeft + state->getPlayerLocation() / 10.0f);
+		pixel.setFillColor(sf::Color(255, 0, 0));
+		if (blinkTime < 0.4) {
+			pixel.setFillColor(sf::Color(255, 0, 0, 50));
+		}
+		target.draw(pixel);
+	}
 }
 
 void Map::draw(sf::RenderTarget &target, sf::RenderStates states) const {

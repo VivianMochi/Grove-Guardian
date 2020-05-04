@@ -46,6 +46,11 @@ void PlayState::init() {
 	rangeFinder.setOutlineColor(sf::Color::White);
 	rangeFinder.setOutlineThickness(2);
 
+	spiritArrow.setTexture(loadTexture("Resource/Image/SpiritArrow.png"));
+	spiritArrow.setTextureRect(sf::IntRect(40, 40, 40, 40));
+	spiritArrow.setOrigin(20, 20);
+	spiritArrow.setPosition(120, 70);
+
 	//dayMusic.openFromFile("Resource/Music/Day.ogg");
 	//rainMusic.openFromFile("Resource/Music/RainyDay.ogg");
 	//nightMusic.openFromFile("Resource/Music/Night.ogg");
@@ -206,6 +211,7 @@ void PlayState::update(sf::Time elapsed) {
 		time += elapsed.asSeconds() * timeSpeed;
 		totalTime += elapsed.asSeconds() * timeSpeed;
 	}
+	totalTimeUnmodified += elapsed.asSeconds();
 	
 	if (time >= secondsPerDay) {
 		time = 0;
@@ -349,6 +355,31 @@ void PlayState::update(sf::Time elapsed) {
 		spirit->update(adjustedElapsed);
 	}
 
+	if (getClosestSpirit(getPlayerLocation())) {
+		sf::Vector2f directionPosition = getClosestSpirit(getPlayerLocation())->getPosition();
+		int dx = directionPosition.x - getPlayerLocation().x;
+		int dy = directionPosition.y - getPlayerLocation().y;
+		int textureX = 40;
+		int textureY = 40;
+		if (dx <= -100) {
+			textureX = 0;
+		}
+		else if (dx >= 100) {
+			textureX = 80;
+		}
+		if (dy <= -60) {
+			textureY = 0;
+		}
+		else if (dy >= 60) {
+			textureY = 80;
+		}
+		spiritArrow.setTextureRect(sf::IntRect(textureX, textureY, 40, 40));
+		spiritArrow.setColor(sf::Color(255, 255, 255, std::fmod(totalTimeUnmodified, 1) < 0.5 ? 255 : 100));
+	}
+	else {
+		spiritArrow.setTextureRect(sf::IntRect(40, 40, 40, 40));
+	}
+
 	if (selectedObject && selectedObject->dead) {
 		selectedObject = std::shared_ptr<GridObject>();
 	}
@@ -404,9 +435,11 @@ void PlayState::calculateMaxResources() {
 }
 
 void PlayState::gainLight(float gained, sf::Vector2f position) {
-	light += gained;
-	if (light > maxLight) {
-		light = maxLight;
+	if (light < maxLight) {
+		light += gained;
+		if (light > maxLight) {
+			light = maxLight;
+		}
 	}
 	if (position.x >= 0) {
 		for (int i = 0; i < std::floor(gained); i++) {
@@ -431,9 +464,11 @@ bool PlayState::spendLight(float spent, sf::Vector2f position) {
 }
 
 void PlayState::gainWater(float gained, sf::Vector2f position) {
-	water += gained;
-	if (water > maxWater && weather != rainy) {
-		water = maxWater;
+	if (water < maxWater || weather == rainy) {
+		water += gained;
+		if (water > maxWater && weather != rainy) {
+			water = maxWater;
+		}
 	}
 	if (position.x >= 0) {
 		for (int i = 0; i < std::floor(gained); i++) {
@@ -458,9 +493,11 @@ bool PlayState::spendWater(float spent, sf::Vector2f position) {
 }
 
 void PlayState::gainNutrients(float gained, sf::Vector2f position) {
-	nutrients += gained;
-	if (nutrients > maxNutrients) {
-		nutrients = maxNutrients;
+	if (nutrients < maxNutrients) {
+		nutrients += gained;
+		if (nutrients > maxNutrients) {
+			nutrients = maxNutrients;
+		}
 	}
 	if (position.x >= 0) {
 		for (int i = 0; i < std::floor(gained); i++) {
@@ -553,6 +590,8 @@ void PlayState::render(sf::RenderWindow &window) {
 	}
 
 	window.draw(player);
+
+	window.draw(spiritArrow);
 
 	window.draw(hud);
 	for (Particle &particle : particles) {
@@ -717,15 +756,15 @@ void PlayState::createRuin(std::string type, std::string subType) {
 }
 
 void PlayState::spawnSpirits() {
+	sf::Vector2f spawnLocation(std::rand() % 2 ? -500 : worldSize.x * 10 + 500, std::rand() % worldSize.y * 10);
+	if (std::rand() % 2) {
+		spawnLocation = sf::Vector2f(std::rand() % worldSize.x * 10, std::rand() % 2 ? -500 : worldSize.y * 10 + 500);
+	}
 	for (int i = 0; i < day * 2; i++) {
 		std::shared_ptr<Spirit> spirit = std::make_shared<Spirit>();
 		spirit->setState(this);
-		if (std::rand() % 2) {
-			spirit->setPosition(std::rand() % 2 ? 0 : worldSize.x * 10, std::rand() % worldSize.y * 10);
-		}
-		else {
-			spirit->setPosition(std::rand() % worldSize.x * 10, std::rand() % 2 ? 0 : worldSize.y * 10);
-		}
+		sf::Vector2f offset(std::rand() % 500 - 250, std::rand() % 500 - 250);
+		spirit->setPosition(spawnLocation + offset);
 		spirit->init();
 		spirits.push_back(spirit);
 	}

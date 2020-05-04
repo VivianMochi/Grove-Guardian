@@ -140,7 +140,7 @@ std::string getTreeDescription(std::string type) {
 		return "Makes nutrients\nanywhere.";
 	}
 	else if (type == "Waterlily") {
-		return "Quadruple water\nintake.";
+		return "Triple water\nintake.";
 	}
 	else if (type == "Mushroom") {
 		return "Extracts triple\nnutrients.";
@@ -223,7 +223,7 @@ TreeStats getTreeStats(std::string type) {
 		return TreeStats{ 0, 0, 2, 0, 4, 0.25, 1, 1, 0, 1};
 	}
 	else if (type == "Waterlily") {
-		return TreeStats{ 1, 4, 1, 1, 0, 0, 4 };
+		return TreeStats{ 1, 4, 1, 1, 0, 0, 3 };
 	}
 	else if (type == "Mushroom") {
 		return TreeStats{ 0, 0, 0, 0, 0, 0, 1, 3 };

@@ -93,6 +93,7 @@ public:
 	int hour = 2;
 	float time = 0;
 	float totalTime = 0;
+	float totalTimeUnmodified = 0;
 	int timeSpeed = 1;
 	enum {
 		sunny,
@@ -124,6 +125,7 @@ private:
 	Hud hud;
 	sf::Sprite cursor;
 	Map map;
+	sf::Sprite spiritArrow;
 
 	std::vector<Particle> particles;
 
