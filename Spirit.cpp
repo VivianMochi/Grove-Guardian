@@ -67,7 +67,7 @@ void Spirit::setType(std::string type) {
 		sprite.setTexture(state->loadTexture("Resource/Image/TallSpirit.png"));
 		sprite.setTextureRect(sf::IntRect(0, 0, 10, 30));
 		sprite.setOrigin(5, 25);
-		topSpeed = 10;
+		topSpeed = 15;
 	}
 	else if (type == "Double") {
 		sprite.setTexture(state->loadTexture("Resource/Image/DoubleSpirit.png"));

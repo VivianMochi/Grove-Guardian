@@ -60,7 +60,7 @@ void PlayState::init() {
 
 	calculateMaxResources();
 	water = maxWater;
-	nutrients = maxNutrients / 2;
+	nutrients = maxNutrients;
 
 	hud.setState(this);
 	hud.init();
@@ -647,14 +647,19 @@ void PlayState::buildWorld(int worldWidth, int worldHeight) {
 	createRuin("Large", "Water");
 	createRuin("Large", "Nutrients");
 	createRuin("Small", "Seaweed");
+	createRuin("Small", "Red Oak");
+	createRuin("Small", "Holly Oak");
+	createRuin("Small", "Birch");
+	createRuin("Small", "Sweet Birch");
+	createRuin("Small", "Bamboo");
 	createRuin("Small", "Willow");
+	createRuin("Small", "Aloe");
+	createRuin("Small", "Venus Fly Trap");
 	createRuin("Small", "Cactus");
-	createRuin("Small", "Soybean");
-	createRuin("Small", "Waterlily");
+	createRuin("Small", "Mushroom");
+	createRuin("Small", "Megashroom");
 	createRuin("Small", "Glowshroom");
-	createRuin("Small", "Kelp");
-	createRuin("Small", "Seagrass");
-	createRuin("Small", "Coral");
+	//createRuin("Small", "Coral");
 	createRuin("Small", "Grand Mother");
 
 	// Add shoreline proper
@@ -866,7 +871,10 @@ sf::Vector2f PlayState::getPlayerLocation() {
 }
 
 bool PlayState::isResearched(std::string type) {
-	if (godMode) {
+	if (type == "TODO") {
+		return false;
+	}
+	if (godMode && !sf::Keyboard::isKeyPressed(sf::Keyboard::L)) {
 		return true;
 	}
 	bool output = true;

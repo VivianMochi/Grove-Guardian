@@ -10,6 +10,8 @@ public:
 
 	void generateFramePeriod();
 
+	sf::Color color;
+
 private:
 	// Inherited via Drawable
 	virtual void draw(sf::RenderTarget &target, sf::RenderStates states) const override;

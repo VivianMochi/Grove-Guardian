@@ -63,7 +63,7 @@ void Tree::update(sf::Time elapsed) {
 }
 
 void Tree::onHalfSecond() {
-	if (stats.range > 0 && attackCooldown <= 0) {
+	if (stats.range > 0 && stats.attackRate > 0 && attackCooldown <= 0) {
 		target = state->getClosestSpirit(getPosition());
 		if (target) {
 			float distance = std::sqrt(std::pow(target->getPosition().x - getPosition().x, 2) + std::pow(target->getPosition().y - getPosition().y, 2));
@@ -88,21 +88,22 @@ void Tree::onHour(int hour) {
 	if (tileBelow) {
 		if (tileBelow->getType() == "Water" && tileBelow->quantity > 0 && state->getTimeOfDay(hour) != "Night") {
 			if (state->water <= state->maxWater - 1 || state->weather == state->rainy) {
-				state->gainWater(getType() == "Waterlily" ? 4 : 1, getPosition());
+				state->gainWater(stats.waterMultiplier, getPosition());
 				tileBelow->quantity -= 1;
 			}
 		}
 		else if (tileBelow->getType() == "Nutrients" && tileBelow->quantity > 0) {
 			if (state->nutrients <= state->maxNutrients - 1) {
-				state->gainNutrients(1, getPosition());
+				state->gainNutrients(stats.nutrientsMultiplier, getPosition());
 				tileBelow->quantity -= 1;
 			}
 		}
 	}
 
-	if (getType() == "Soybean") {
-		state->gainNutrients(1, getPosition());
+	if (state->getTimeOfDay(hour) != "Night") {
+		state->gainWater(stats.waterIncome, getPosition());
 	}
+	state->gainNutrients(stats.nutrientsIncome, getPosition());
 
 	if (getType() != "Glowshroom") {
 		if (state->weather == state->sunny) {
@@ -159,8 +160,8 @@ void Tree::setType(std::string type) {
 		sprite.setOrigin(5, 5);
 	}
 	else {
-		buildTreeFromImage(type);
 		stats = getTreeStats(type);
+		buildTreeFromImage(type);
 	}
 
 	if (type == "Willow") {
@@ -227,6 +228,9 @@ void Tree::createLeaf(float x, float y) {
 	Leaf leaf;
 	leaf.setState(state);
 	leaf.setPosition(x, y);
+	if (stats.color != sf::Color()) {
+		leaf.color = stats.color;
+	}
 	leaf.init();
 	leaves.push_back(leaf);
 }

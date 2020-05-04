@@ -4,7 +4,13 @@
 
 void Leaf::init() {
 	sprite.setTexture(state->loadTexture("Resource/Image/Leaf.png"));
-	sprite.setTextureRect(sf::IntRect(0, 0, 10, 10));
+	if (color != sf::Color()) {
+		sprite.setTextureRect(sf::IntRect(0, 10, 10, 10));
+		sprite.setColor(color);
+	}
+	else {
+		sprite.setTextureRect(sf::IntRect(0, 0, 10, 10));
+	}
 	sprite.setOrigin(5, 5);
 
 	generateFramePeriod();
@@ -28,7 +34,13 @@ void Leaf::update(sf::Time elapsed) {
 		frame = 0;
 	}
 
-	sprite.setTextureRect(sf::IntRect(10 * frame, 0, 10, 10));
+	if (color != sf::Color()) {
+		sprite.setTextureRect(sf::IntRect(10 * frame, 10, 10, 10));
+		sprite.setColor(color);
+	}
+	else {
+		sprite.setTextureRect(sf::IntRect(10 * frame, 0, 10, 10));
+	}
 	sprite.setPosition(getPosition() - state->cameraPosition + sf::Vector2f(offset, 0));
 }
 
